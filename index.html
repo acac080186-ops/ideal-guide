@@ -1,570 +1,336 @@
-<!DOCTYPE html>
-<html lang="th">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sunlight Hub</title>
-    <!-- Google Fonts: Kanit -->
-    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <!-- Font Awesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    fontFamily: {
-                        kanit: ['Kanit', 'sans-serif'],
-                    },
-                    colors: {
-                        darkBg: '#0a0a0a',
-                        cardBg: '#1a0b2e',
-                        neonPurple: '#a855f7',
-                        neonPurpleHover: '#9333ea',
-                    }
-                }
-            }
+<script>
+    let currentUser = JSON.parse(localStorage.getItem('sunlight_current_user')) || null;
+    let countdownInterval = null;
+
+    window.addEventListener('DOMContentLoaded', () => {
+        const entered = localStorage.getItem('sunlight_entered');
+        if (entered === 'true') {
+            document.getElementById('welcomeScreen').style.display = 'none';
+            document.getElementById('mainApp').classList.remove('hidden');
+            document.getElementById('mainApp').classList.add('flex');
         }
-    </script>
-    <style>
-        body {
-            font-family: 'Kanit', sans-serif;
-            background-color: #0a0a0a;
-            color: #ffffff;
-        }
-        .glass-panel {
-            background: rgba(26, 11, 46, 0.7);
-            backdrop-filter: blur(12px);
-            border: 1px solid rgba(168, 85, 247, 0.3);
-            box-shadow: 0 0 20px rgba(168, 85, 247, 0.15);
-        }
-        .neon-glow {
-            box-shadow: 0 0 25px rgba(168, 85, 247, 0.4);
-        }
-        .neon-glow-sm {
-            box-shadow: 0 0 10px rgba(168, 85, 247, 0.3);
-        }
-        ::-webkit-scrollbar {
-            width: 8px;
-        }
-        ::-webkit-scrollbar-track {
-            background: #0a0a0a;
-        }
-        ::-webkit-scrollbar-thumb {
-            background: #a855f7;
-            border-radius: 4px;
-        }
-    </style>
-</head>
-<body class="bg-darkBg min-h-screen flex flex-col justify-between selection:bg-neonPurple selection:text-white">
+        updateAuthUI();
+        loadScripts();
+    });
 
-    <!-- ================= WELCOME / SPLASH SCREEN ================= -->
-    <div id="welcomeScreen" class="fixed inset-0 z-50 bg-[#0a0a0a] flex items-center justify-center p-4 transition-opacity duration-700">
-        <div class="glass-panel p-8 md:p-12 rounded-3xl max-w-md w-full text-center neon-glow relative overflow-hidden">
-            <div class="absolute -top-24 -left-24 w-48 h-48 bg-purple-600 rounded-full filter blur-3xl opacity-30"></div>
-            <div class="absolute -bottom-24 -right-24 w-48 h-48 bg-indigo-600 rounded-full filter blur-3xl opacity-30"></div>
+    function joinDiscord() {
+        const discordBtn = document.getElementById('discordBtn');
+        const enterBtn = document.getElementById('enterWebBtn');
+        const enterBtnText = document.getElementById('enterBtnText');
 
-            <div class="relative w-24 h-24 mx-auto mb-6 bg-gradient-to-tr from-purple-900 to-neonPurple rounded-full flex items-center justify-center neon-glow">
-                <i class="fa-solid fa-sun text-4xl text-white animate-spin" style="animation-duration: 20s;"></i>
-            </div>
+        // กันกดซ้ำ
+        if (discordBtn.disabled) return;
 
-            <h1 class="text-2xl md:text-3xl font-bold mb-2">ยินดีต้อนรับสู่ Sunlight Hub</h1>
-            <p class="text-gray-300 text-sm md:text-base mb-8">กรุณาเข้าร่วม Discord เพื่อเข้าใช้งานเว็บ</p>
+        // เปิด Discord
+        window.open('https://discord.gg/yUUz7jWa5', '_blank');
 
-            <div class="space-y-4">
-                <button onclick="joinDiscord()" class="w-full py-3.5 px-4 rounded-xl font-medium bg-[#5865F2] hover:bg-[#4752C4] text-white transition-all duration-300 flex items-center justify-center gap-3 shadow-lg">
-                    <i class="fa-brands fa-discord text-xl"></i> เข้าร่วม Discord
-                </button>
+        // Disable Discord button
+        discordBtn.disabled = true;
+        discordBtn.classList.add('opacity-50', 'cursor-not-allowed');
+        document.getElementById('discordBtnText').innerText = "กรุณารอสักครู่...";
 
-                <button id="enterWebBtn" onclick="enterWebsite()" disabled class="w-full py-3.5 px-4 rounded-xl font-medium bg-purple-900/40 text-gray-500 cursor-not-allowed border border-purple-900/50 transition-all duration-300 flex items-center justify-center gap-2">
-                    <i class="fa-solid fa-arrow-right-to-bracket"></i> เข้าสู่เว็บ
-                </button>
-            </div>
-        </div>
-    </div>
+        // แสดงข้อความสถานะ
+        document.getElementById('statusMsg').innerText = "กำลังเตรียมระบบ...";
 
-    <!-- ================= MAIN WEBSITE CONTAINER ================= -->
-    <div id="mainApp" class="hidden flex-col min-h-screen justify-between">
-        
-        <nav class="glass-panel border-b border-purple-900/40 sticky top-0 z-40 px-4 md:px-8 py-4">
-            <div class="max-w-7xl mx-auto flex items-center justify-between">
-                <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 rounded-xl bg-neonPurple/20 border border-neonPurple flex items-center justify-center text-neonPurple neon-glow-sm">
-                        <i class="fa-solid fa-sun text-xl"></i>
-                    </div>
-                    <span class="text-xl font-bold tracking-wide text-white">Sunlight Hub</span>
-                </div>
+        // เริ่มนับถอยหลัง 10 วินาที
+        let timeLeft = 10;
 
-                <div class="flex items-center gap-3">
-                    <div id="authContainer">
-                        <button onclick="openAuthModal()" class="bg-neonPurple hover:bg-neonPurpleHover text-white px-4 py-2 rounded-xl font-medium text-sm transition-all duration-300 neon-glow-sm flex items-center gap-2">
-                            <i class="fa-solid fa-user-circle"></i> เข้าสู่ระบบ / สมัครสมาชิก
-                        </button>
-                    </div>
+        // ล้าง interval เก่า (ถ้ามี)
+        if (countdownInterval) clearInterval(countdownInterval);
 
-                    <button id="adminBtn" onclick="toggleAdminPanel()" class="hidden bg-purple-900/60 hover:bg-purple-800 text-neonPurple border border-neonPurple/50 px-4 py-2 rounded-xl font-medium text-sm transition-all duration-300 flex items-center gap-2">
-                        <i class="fa-solid fa-shield-halved"></i> จัดการสคริปต์
-                    </button>
-                </div>
-            </div>
-        </nav>
+        // อัปเดตครั้งแรกทันที
+        enterBtnText.innerHTML = `กรุณารอ <span class="text-neonPurple font-bold animate-pulse">${timeLeft}</span> วินาที`;
 
-        <header class="max-w-4xl mx-auto text-center px-4 pt-12 pb-8">
-            <h1 class="text-3xl md:text-5xl font-bold mb-4 bg-gradient-to-r from-white via-purple-200 to-neonPurple bg-clip-text text-transparent">
-                Sunlight Hub
-            </h1>
-            <p class="text-gray-300 text-sm md:text-base max-w-2xl mx-auto mb-8 leading-relaxed">
-                กำลังหาติสอยู่รึป่าว? ติสพวกเรา ✨ ศูนย์รวมสคริปต์คุณภาพสูง ใช้งานง่าย ปลอดภัย และอัปเดตตลอดเวลา
-            </p>
+        countdownInterval = setInterval(() => {
+            timeLeft--;
 
-            <div class="relative max-w-xl mx-auto">
-                <span class="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none text-gray-400">
-                    <i class="fa-solid fa-magnifying-glass"></i>
-                </span>
-                <input type="text" id="searchInput" oninput="filterScripts()" placeholder="ค้นหาสคริปต์จากชื่อ หรือ ผู้สร้าง..." 
-                    class="w-full pl-11 pr-4 py-3.5 rounded-2xl glass-panel text-white placeholder-gray-400 focus:outline-none focus:border-neonPurple transition-all duration-300 text-sm md:text-base">
-            </div>
-        </header>
-
-        <main class="max-w-7xl mx-auto px-4 md:px-8 py-6 flex-grow w-full">
-            <div class="flex items-center justify-between mb-6">
-                <h2 class="text-lg md:text-xl font-semibold flex items-center gap-2 text-white">
-                    <i class="fa-solid fa-code text-neonPurple"></i> รายการสคริปต์ที่เพิ่งอัปโหลด
-                </h2>
-                <span id="scriptCountBadge" class="text-xs bg-purple-900/60 border border-neonPurple/40 text-neonPurple px-3 py-1 rounded-full font-medium">0 รายการ</span>
-            </div>
-
-            <div id="scriptsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                <!-- Dynamically populated scripts -->
-            </div>
-        </main>
-
-        <section class="max-w-5xl mx-auto px-4 w-full my-12">
-            <div class="glass-panel rounded-3xl p-6 md:p-8 text-center relative overflow-hidden neon-glow">
-                <div class="absolute -right-10 -bottom-10 opacity-10 pointer-events-none">
-                    <i class="fa-brands fa-discord text-9xl text-white"></i>
-                </div>
-                <div class="w-12 h-12 mx-auto mb-4 rounded-2xl bg-[#5865F2]/20 border border-[#5865F2] flex items-center justify-center text-[#5865F2]">
-                    <i class="fa-brands fa-discord text-2xl"></i>
-                </div>
-                <h3 class="text-xl font-bold mb-2">เข้าร่วมชุมชน Sunlight Discord</h3>
-                <p class="text-gray-300 text-sm mb-6 max-w-md mx-auto">พูดคุย แจ้งปัญหา แนะนำสคริปต์ หรือรับข่าวสารอัปเดตใหม่ๆ ได้ที่นี่!</p>
-                <a href="https://discord.gg/yUUz7jWa5" target="_blank" class="inline-flex items-center gap-2 bg-[#5865F2] hover:bg-[#4752C4] text-white px-6 py-3 rounded-xl font-medium transition-all duration-300 shadow-lg">
-                    <i class="fa-brands fa-discord"></i> เข้าร่วมดิสคอร์ด
-                </a>
-            </div>
-        </section>
-
-        <footer class="text-center py-6 border-t border-purple-900/30 text-gray-400 text-xs md:text-sm">
-            <p>&copy; 2026 Sunlight Hub. All rights reserved. กำลังหาติสอยู่รึป่าว? ติสพวกเรา</p>
-        </footer>
-    </div>
-
-    <!-- ================= ADMIN PANEL MODAL ================= -->
-    <div id="adminModal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm hidden items-center justify-center p-4">
-        <div class="glass-panel p-6 md:p-8 rounded-3xl max-w-lg w-full relative neon-glow">
-            <button onclick="toggleAdminPanel()" class="absolute top-5 right-5 text-gray-400 hover:text-white text-xl">
-                <i class="fa-solid fa-xmark"></i>
-            </button>
-            <h3 class="text-xl font-bold mb-6 flex items-center gap-2 text-neonPurple">
-                <i class="fa-solid fa-circle-plus"></i> เพิ่มสคริปต์ใหม่ (Admin)
-            </h3>
-            <form id="scriptForm" onsubmit="saveScript(event)" class="space-y-4">
-                <div>
-                    <label class="block text-xs font-medium text-gray-300 mb-1">ชื่อสคริปต์</label>
-                    <input type="text" id="scriptName" required placeholder="เช่น Hub Blox Fruit" class="w-full px-4 py-3 rounded-xl glass-panel text-white text-sm focus:outline-none focus:border-neonPurple">
-                </div>
-                <div>
-                    <label class="block text-xs font-medium text-gray-300 mb-1">ชื่อผู้สร้าง</label>
-                    <input type="text" id="scriptCreator" required placeholder="เช่น Sunlight Dev" class="w-full px-4 py-3 rounded-xl glass-panel text-white text-sm focus:outline-none focus:border-neonPurple">
-                </div>
-                <div>
-                    <label class="block text-xs font-medium text-gray-300 mb-1">ลิงก์ดาวน์โหลด (URL หรือ โค้ดสคริปต์)</label>
-                    <input type="text" id="scriptUrl" required placeholder="https://..." class="w-full px-4 py-3 rounded-xl glass-panel text-white text-sm focus:outline-none focus:border-neonPurple">
-                </div>
-                <div>
-                    <label class="block text-xs font-medium text-gray-300 mb-1">คำอธิบาย</label>
-                    <textarea id="scriptDesc" rows="3" required placeholder="อธิบายเกี่ยวกับฟังก์ชันของสคริปต์..." class="w-full px-4 py-3 rounded-xl glass-panel text-white text-sm focus:outline-none focus:border-neonPurple resize-none"></textarea>
-                </div>
-                <div class="pt-2">
-                    <button type="submit" class="w-full py-3 rounded-xl font-medium bg-neonPurple hover:bg-neonPurpleHover text-white transition-all duration-300 neon-glow-sm">
-                        บันทึกสคริปต์
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- ================= AUTH MODAL ================= -->
-    <div id="authModal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm hidden items-center justify-center p-4">
-        <div class="glass-panel p-6 md:p-8 rounded-3xl max-w-md w-full relative neon-glow">
-            <button onclick="closeAuthModal()" class="absolute top-5 right-5 text-gray-400 hover:text-white text-xl">
-                <i class="fa-solid fa-xmark"></i>
-            </button>
-
-            <div class="flex rounded-xl bg-purple-950/60 p-1 mb-6 border border-purple-900/40">
-                <button id="loginTabBtn" onclick="switchAuthTab('login')" class="flex-1 py-2.5 rounded-lg text-sm font-medium transition-all duration-300 bg-neonPurple text-white">เข้าสู่ระบบ</button>
-                <button id="registerTabBtn" onclick="switchAuthTab('register')" class="flex-1 py-2.5 rounded-lg text-sm font-medium transition-all duration-300 text-gray-400 hover:text-white">สมัครสมาชิก</button>
-            </div>
-
-            <form id="loginForm" onsubmit="handleLogin(event)" class="space-y-4">
-                <div>
-                    <label class="block text-xs font-medium text-gray-300 mb-1">ชื่อผู้ใช้หรืออีเมล</label>
-                    <input type="text" id="loginUser" required placeholder="ชื่อผู้ใช้ หรือ อีเมลของคุณ" class="w-full px-4 py-3 rounded-xl glass-panel text-white text-sm focus:outline-none focus:border-neonPurple">
-                </div>
-                <div>
-                    <label class="block text-xs font-medium text-gray-300 mb-1">รหัสผ่าน</label>
-                    <input type="password" id="loginPass" required placeholder="••••••••" class="w-full px-4 py-3 rounded-xl glass-panel text-white text-sm focus:outline-none focus:border-neonPurple">
-                </div>
-                <div class="pt-2">
-                    <button type="submit" class="w-full py-3 rounded-xl font-medium bg-neonPurple hover:bg-neonPurpleHover text-white transition-all duration-300 neon-glow-sm flex items-center justify-center gap-2">
-                        <i class="fa-solid fa-right-to-bracket"></i> เข้าสู่ระบบ
-                    </button>
-                </div>
-            </form>
-
-            <form id="registerForm" onsubmit="handleRegister(event)" class="space-y-4 hidden">
-                <div>
-                    <label class="block text-xs font-medium text-gray-300 mb-1">ชื่อผู้ใช้ใหม่</label>
-                    <input type="text" id="regUser" required placeholder="ตั้งชื่อผู้ใช้" class="w-full px-4 py-3 rounded-xl glass-panel text-white text-sm focus:outline-none focus:border-neonPurple">
-                </div>
-                <div>
-                    <label class="block text-xs font-medium text-gray-300 mb-1">อีเมล</label>
-                    <input type="email" id="regEmail" required placeholder="name@example.com" class="w-full px-4 py-3 rounded-xl glass-panel text-white text-sm focus:outline-none focus:border-neonPurple">
-                </div>
-                <div>
-                    <label class="block text-xs font-medium text-gray-300 mb-1">รหัสผ่าน</label>
-                    <input type="password" id="regPass" required placeholder="••••••••" class="w-full px-4 py-3 rounded-xl glass-panel text-white text-sm focus:outline-none focus:border-neonPurple">
-                </div>
-                <div class="pt-2">
-                    <button type="submit" class="w-full py-3 rounded-xl font-medium bg-neonPurple hover:bg-neonPurpleHover text-white transition-all duration-300 neon-glow-sm flex items-center justify-center gap-2">
-                        <i class="fa-solid fa-user-plus"></i> สมัครสมาชิก
-                    </button>
-                </div>
-            </form>
-
-            <div id="authErrorMsg" class="mt-4 p-3 rounded-xl bg-red-950/60 border border-red-500/40 text-red-300 text-xs text-center hidden flex items-center justify-center gap-2">
-                <i class="fa-solid fa-triangle-exclamation"></i> <span id="errorText">ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง!</span>
-            </div>
-        </div>
-    </div>
-
-    <!-- Notification Toast -->
-    <div id="toast" class="fixed bottom-5 right-5 z-50 glass-panel px-5 py-3 rounded-xl text-sm text-white neon-glow-sm transition-all duration-300 transform translate-y-20 opacity-0 flex items-center gap-2">
-        <i class="fa-solid fa-circle-check text-neonPurple"></i> <span id="toastText">คัดลอกสคริปต์สำเร็จ!</span>
-    </div>
-
-    <!-- ================= JAVASCRIPT ================= -->
-    <script>
-        // 🔄 ระบบล้างข้อมูลเก่าอัตโนมัติ - เปลี่ยนเลขนี้ทุกครั้งที่อัปเดตโค้ดใหม่
-        const CURRENT_VERSION = 'v3';
-        const VERSION_KEY = 'sunlight_version';
-
-        let discordClicked = false;
-        let currentUser = null;
-
-        // Initialize on page load
-        window.addEventListener('DOMContentLoaded', () => {
-            // ตรวจสอบเวอร์ชัน - ถ้าเปลี่ยน ให้ล้างข้อมูลเก่า
-            if (localStorage.getItem(VERSION_KEY) !== CURRENT_VERSION) {
-                localStorage.removeItem('sunlight_scripts');
-                localStorage.removeItem('sunlight_current_user');
-                localStorage.removeItem('sunlight_users');
-                localStorage.setItem(VERSION_KEY, CURRENT_VERSION);
-                console.log('🔄 อัปเดตเวอร์ชัน ' + CURRENT_VERSION + ' และล้างข้อมูลเก่า');
-            }
-
-            // โหลดผู้ใช้ปัจจุบัน
-            currentUser = JSON.parse(localStorage.getItem('sunlight_current_user')) || null;
-
-            // เช็คว่าเข้าเว็บมาแล้วหรือยัง
-            const entered = localStorage.getItem('sunlight_entered');
-            if (entered === 'true') {
-                document.getElementById('welcomeScreen').style.display = 'none';
-                const main = document.getElementById('mainApp');
-                main.classList.remove('hidden');
-                main.classList.add('flex');
-            }
-            updateAuthUI();
-            loadScripts();
-        });
-
-        function joinDiscord() {
-            discordClicked = true;
-            window.open('https://discord.gg/yUUz7jWa5', '_blank');
-            const enterBtn = document.getElementById('enterWebBtn');
-            enterBtn.removeAttribute('disabled');
-            enterBtn.classList.remove('bg-purple-900/40', 'text-gray-500', 'cursor-not-allowed', 'border-purple-900/50');
-            enterBtn.classList.add('bg-neonPurple', 'hover:bg-neonPurpleHover', 'text-white', 'neon-glow-sm');
-        }
-
-        function enterWebsite() {
-            if (!discordClicked && localStorage.getItem('sunlight_entered') !== 'true') return;
-            localStorage.setItem('sunlight_entered', 'true');
-            const welcome = document.getElementById('welcomeScreen');
-            welcome.style.opacity = '0';
-            setTimeout(() => {
-                welcome.style.display = 'none';
-                const main = document.getElementById('mainApp');
-                main.classList.remove('hidden');
-                main.classList.add('flex');
-            }, 700);
-        }
-
-        function openAuthModal() {
-            document.getElementById('authModal').style.display = 'flex';
-        }
-        function closeAuthModal() {
-            document.getElementById('authModal').style.display = 'none';
-            document.getElementById('authErrorMsg').classList.add('hidden');
-        }
-
-        function switchAuthTab(tab) {
-            const loginTab = document.getElementById('loginTabBtn');
-            const regTab = document.getElementById('registerTabBtn');
-            const loginForm = document.getElementById('loginForm');
-            const regForm = document.getElementById('registerForm');
-            document.getElementById('authErrorMsg').classList.add('hidden');
-
-            if (tab === 'login') {
-                loginTab.className = "flex-1 py-2.5 rounded-lg text-sm font-medium transition-all duration-300 bg-neonPurple text-white";
-                regTab.className = "flex-1 py-2.5 rounded-lg text-sm font-medium transition-all duration-300 text-gray-400 hover:text-white";
-                loginForm.classList.remove('hidden');
-                regForm.classList.add('hidden');
+            if (timeLeft > 0) {
+                enterBtnText.innerHTML = `กรุณารอ <span class="text-neonPurple font-bold animate-pulse">${timeLeft}</span> วินาที`;
             } else {
-                regTab.className = "flex-1 py-2.5 rounded-lg text-sm font-medium transition-all duration-300 bg-neonPurple text-white";
-                loginTab.className = "flex-1 py-2.5 rounded-lg text-sm font-medium transition-all duration-300 text-gray-400 hover:text-white";
-                regForm.classList.remove('hidden');
-                loginForm.classList.add('hidden');
+                // ✅ นับเสร็จแล้ว
+                clearInterval(countdownInterval);
+                countdownInterval = null;
+
+                // คืนค่าปุ่ม Discord
+                discordBtn.disabled = false;
+                discordBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+                document.getElementById('discordBtnText').innerText = "เข้าร่วม Discord อีกครั้ง";
+
+                // ปลดล็อกปุ่มเข้าสู่เว็บ
+                enterBtn.removeAttribute('disabled');
+                enterBtn.classList.remove('bg-purple-900/40', 'text-gray-500', 'cursor-not-allowed', 'border-purple-900/50');
+                enterBtn.classList.add('bg-neonPurple', 'hover:bg-neonPurpleHover', 'text-white', 'neon-glow-sm');
+                enterBtnText.innerText = "เข้าสู่เว็บ";
+
+                document.getElementById('statusMsg').innerText = "✅ ระบบพร้อมใช้งานแล้ว!";
             }
+        }, 1000);
+    }
+
+    function enterWebsite() {
+        const enterBtn = document.getElementById('enterWebBtn');
+        if (enterBtn.hasAttribute('disabled')) return;
+
+        localStorage.setItem('sunlight_entered', 'true');
+        const welcome = document.getElementById('welcomeScreen');
+        welcome.style.opacity = '0';
+        setTimeout(() => {
+            welcome.style.display = 'none';
+            const main = document.getElementById('mainApp');
+            main.classList.remove('hidden');
+            main.classList.add('flex');
+        }, 700);
+    }
+
+    function openAuthModal() {
+        document.getElementById('authModal').style.display = 'flex';
+    }
+    function closeAuthModal() {
+        document.getElementById('authModal').style.display = 'none';
+        document.getElementById('authErrorMsg').classList.add('hidden');
+    }
+
+    function switchAuthTab(tab) {
+        const loginTab = document.getElementById('loginTabBtn');
+        const regTab = document.getElementById('registerTabBtn');
+        const loginForm = document.getElementById('loginForm');
+        const regForm = document.getElementById('registerForm');
+        document.getElementById('authErrorMsg').classList.add('hidden');
+
+        if (tab === 'login') {
+            loginTab.className = "flex-1 py-2.5 rounded-lg text-sm font-medium transition-all duration-300 bg-neonPurple text-white";
+            regTab.className = "flex-1 py-2.5 rounded-lg text-sm font-medium transition-all duration-300 text-gray-400 hover:text-white";
+            loginForm.classList.remove('hidden');
+            regForm.classList.add('hidden');
+        } else {
+            regTab.className = "flex-1 py-2.5 rounded-lg text-sm font-medium transition-all duration-300 bg-neonPurple text-white";
+            loginTab.className = "flex-1 py-2.5 rounded-lg text-sm font-medium transition-all duration-300 text-gray-400 hover:text-white";
+            regForm.classList.remove('hidden');
+            loginForm.classList.add('hidden');
         }
+    }
 
-        function handleLogin(e) {
-            e.preventDefault();
-            const user = document.getElementById('loginUser').value.trim();
-            const pass = document.getElementById('loginPass').value;
+    function handleLogin(e) {
+        e.preventDefault();
+        const user = document.getElementById('loginUser').value.trim();
+        const pass = document.getElementById('loginPass').value;
 
-            // ✅ ตรวจสอบ Admin: Sunlight hub 2626 / Sunlight shop 2626
-            if (user === 'Sunlight hub 2626' && pass === 'Sunlight shop 2626') {
-                currentUser = { username: 'Sunlight hub 2626', role: 'admin' };
-                localStorage.setItem('sunlight_current_user', JSON.stringify(currentUser));
-                closeAuthModal();
-                updateAuthUI();
-                showToast('เข้าสู่ระบบแอดมินสำเร็จ! ✨');
-                return;
-            }
-
-            // ตรวจสอบ User ทั่วไป
-            let users = JSON.parse(localStorage.getItem('sunlight_users')) || [];
-            let found = users.find(u => (u.username === user || u.email === user) && u.password === pass);
-
-            if (found) {
-                currentUser = { username: found.username, role: 'user' };
-                localStorage.setItem('sunlight_current_user', JSON.stringify(currentUser));
-                closeAuthModal();
-                updateAuthUI();
-                showToast('เข้าสู่ระบบสำเร็จ!');
-            } else {
-                document.getElementById('errorText').innerText = "ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง!";
-                document.getElementById('authErrorMsg').classList.remove('hidden');
-            }
-        }
-
-        function handleRegister(e) {
-            e.preventDefault();
-            const username = document.getElementById('regUser').value.trim();
-            const email = document.getElementById('regEmail').value.trim();
-            const password = document.getElementById('regPass').value;
-
-            let users = JSON.parse(localStorage.getItem('sunlight_users')) || [];
-            if (users.some(u => u.username === username || u.email === email)) {
-                document.getElementById('errorText').innerText = "ชื่อผู้ใช้หรืออีเมลนี้ถูกใช้งานแล้ว!";
-                document.getElementById('authErrorMsg').classList.remove('hidden');
-                return;
-            }
-
-            users.push({ username, email, password });
-            localStorage.setItem('sunlight_users', JSON.stringify(users));
-
-            currentUser = { username, role: 'user' };
+        if (user === 'Sunlight hub 2626' && pass === 'Sunlight shop 2626') {
+            currentUser = { username: 'Sunlight hub 2626', role: 'admin' };
             localStorage.setItem('sunlight_current_user', JSON.stringify(currentUser));
             closeAuthModal();
             updateAuthUI();
-            showToast('สมัครสมาชิกและเข้าสู่ระบบสำเร็จ! 🎉');
+            showToast('เข้าสู่ระบบแอดมินสำเร็จ! ✨');
+            return;
         }
 
-        function logout() {
-            currentUser = null;
-            localStorage.removeItem('sunlight_current_user');
+        let users = JSON.parse(localStorage.getItem('sunlight_users')) || [];
+        let found = users.find(u => (u.username === user || u.email === user) && u.password === pass);
+
+        if (found) {
+            currentUser = { username: found.username, role: 'user' };
+            localStorage.setItem('sunlight_current_user', JSON.stringify(currentUser));
+            closeAuthModal();
             updateAuthUI();
-            showToast('ออกจากระบบแล้ว');
+            showToast('เข้าสู่ระบบสำเร็จ!');
+        } else {
+            document.getElementById('errorText').innerText = "ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง!";
+            document.getElementById('authErrorMsg').classList.remove('hidden');
+        }
+    }
+
+    function handleRegister(e) {
+        e.preventDefault();
+        const username = document.getElementById('regUser').value.trim();
+        const email = document.getElementById('regEmail').value.trim();
+        const password = document.getElementById('regPass').value;
+
+        let users = JSON.parse(localStorage.getItem('sunlight_users')) || [];
+        if (users.some(u => u.username === username || u.email === email)) {
+            document.getElementById('errorText').innerText = "ชื่อผู้ใช้หรืออีเมลนี้ถูกใช้งานแล้ว!";
+            document.getElementById('authErrorMsg').classList.remove('hidden');
+            return;
         }
 
-        function updateAuthUI() {
-            const authContainer = document.getElementById('authContainer');
-            const adminBtn = document.getElementById('adminBtn');
+        users.push({ username, email, password });
+        localStorage.setItem('sunlight_users', JSON.stringify(users));
 
-            if (currentUser) {
-                authContainer.innerHTML = `
-                    <div class="flex items-center gap-3">
-                        <span class="text-xs md:text-sm text-gray-300 hidden sm:inline"><i class="fa-solid fa-user text-neonPurple mr-1"></i> ${escapeHtml(currentUser.username)}</span>
-                        <button onclick="logout()" class="bg-red-950/60 hover:bg-red-900 border border-red-500/40 text-red-300 px-3 py-1.5 rounded-xl text-xs font-medium transition-all duration-300">
-                            ออกจากระบบ
-                        </button>
-                    </div>
-                `;
-                if (currentUser.role === 'admin') {
-                    adminBtn.classList.remove('hidden');
-                } else {
-                    adminBtn.classList.add('hidden');
-                }
-            } else {
-                authContainer.innerHTML = `
-                    <button onclick="openAuthModal()" class="bg-neonPurple hover:bg-neonPurpleHover text-white px-4 py-2 rounded-xl font-medium text-sm transition-all duration-300 neon-glow-sm flex items-center gap-2">
-                        <i class="fa-solid fa-user-circle"></i> เข้าสู่ระบบ / สมัครสมาชิก
+        currentUser = { username, role: 'user' };
+        localStorage.setItem('sunlight_current_user', JSON.stringify(currentUser));
+        closeAuthModal();
+        updateAuthUI();
+        showToast('สมัครสมาชิกและเข้าสู่ระบบสำเร็จ! 🎉');
+    }
+
+    function logout() {
+        currentUser = null;
+        localStorage.removeItem('sunlight_current_user');
+        updateAuthUI();
+        showToast('ออกจากระบบแล้ว');
+    }
+
+    function updateAuthUI() {
+        const authContainer = document.getElementById('authContainer');
+        const adminBtn = document.getElementById('adminBtn');
+
+        if (currentUser) {
+            authContainer.innerHTML = `
+                <div class="flex items-center gap-3">
+                    <span class="text-xs md:text-sm text-gray-300 hidden sm:inline"><i class="fa-solid fa-user text-neonPurple mr-1"></i> ${escapeHtml(currentUser.username)}</span>
+                    <button onclick="logout()" class="bg-red-950/60 hover:bg-red-900 border border-red-500/40 text-red-300 px-3 py-1.5 rounded-xl text-xs font-medium transition-all duration-300">
+                        ออกจากระบบ
                     </button>
-                `;
+                </div>
+            `;
+            if (currentUser.role === 'admin') {
+                adminBtn.classList.remove('hidden');
+            } else {
                 adminBtn.classList.add('hidden');
             }
-            loadScripts();
+        } else {
+            authContainer.innerHTML = `
+                <button onclick="openAuthModal()" class="bg-neonPurple hover:bg-neonPurpleHover text-white px-4 py-2 rounded-xl font-medium text-sm transition-all duration-300 neon-glow-sm flex items-center gap-2">
+                    <i class="fa-solid fa-user-circle"></i> เข้าสู่ระบบ / สมัครสมาชิก
+                </button>
+            `;
+            adminBtn.classList.add('hidden');
+        }
+        loadScripts();
+    }
+
+    function toggleAdminPanel() {
+        const modal = document.getElementById('adminModal');
+        if (modal.style.display === 'flex') {
+            modal.style.display = 'none';
+        } else {
+            modal.style.display = 'flex';
+        }
+    }
+
+    function saveScript(e) {
+        e.preventDefault();
+        if (!currentUser || currentUser.role !== 'admin') {
+            showToast('เฉพาะแอดมินเท่านั้น!');
+            return;
         }
 
-        function toggleAdminPanel() {
-            const modal = document.getElementById('adminModal');
-            if (modal.style.display === 'flex') {
-                modal.style.display = 'none';
-            } else {
-                modal.style.display = 'flex';
-            }
+        const name = document.getElementById('scriptName').value;
+        const creator = document.getElementById('scriptCreator').value;
+        const url = document.getElementById('scriptUrl').value;
+        const desc = document.getElementById('scriptDesc').value;
+
+        let scripts = JSON.parse(localStorage.getItem('sunlight_scripts')) || [];
+        scripts.unshift({ id: Date.now(), name, creator, url, desc });
+        localStorage.setItem('sunlight_scripts', JSON.stringify(scripts));
+
+        document.getElementById('scriptForm').reset();
+        toggleAdminPanel();
+        loadScripts();
+        showToast('บันทึกสคริปต์สำเร็จ! ✨');
+    }
+
+    function deleteScript(id) {
+        if (!currentUser || currentUser.role !== 'admin') {
+            showToast('เฉพาะแอดมินเท่านั้น!');
+            return;
         }
-
-        function saveScript(e) {
-            e.preventDefault();
-            if (!currentUser || currentUser.role !== 'admin') {
-                showToast('เฉพาะแอดมินเท่านั้น!');
-                return;
-            }
-
-            const name = document.getElementById('scriptName').value;
-            const creator = document.getElementById('scriptCreator').value;
-            const url = document.getElementById('scriptUrl').value;
-            const desc = document.getElementById('scriptDesc').value;
-
+        if (confirm('คุณต้องการลบสคริปต์นี้ใช่หรือไม่?')) {
             let scripts = JSON.parse(localStorage.getItem('sunlight_scripts')) || [];
-            scripts.unshift({ id: Date.now(), name, creator, url, desc });
+            scripts = scripts.filter(s => s.id !== id);
             localStorage.setItem('sunlight_scripts', JSON.stringify(scripts));
-
-            document.getElementById('scriptForm').reset();
-            toggleAdminPanel();
             loadScripts();
-            showToast('บันทึกสคริปต์สำเร็จ! ✨');
+            showToast('ลบสคริปต์เรียบร้อยแล้ว');
+        }
+    }
+
+    function copyScriptUrl(url) {
+        navigator.clipboard.writeText(url).then(() => {
+            showToast('คัดลอกลิงก์/สคริปต์สำเร็จ! 📋');
+        }).catch(err => {
+            console.error('Copy failed', err);
+            showToast('ไม่สามารถคัดลอกได้');
+        });
+    }
+
+    function loadScripts() {
+        const grid = document.getElementById('scriptsGrid');
+        const badge = document.getElementById('scriptCountBadge');
+        let scripts = JSON.parse(localStorage.getItem('sunlight_scripts')) || [];
+        
+        badge.innerText = `${scripts.length} รายการ`;
+
+        if (scripts.length === 0) {
+            grid.innerHTML = `
+                <div class="col-span-full text-center py-16 glass-panel rounded-3xl">
+                    <div class="w-16 h-16 mx-auto mb-4 rounded-2xl bg-purple-900/30 border border-neonPurple/30 flex items-center justify-center text-neonPurple">
+                        <i class="fa-solid fa-folder-open text-2xl"></i>
+                    </div>
+                    <p class="text-gray-400 text-base font-medium">ยังไม่มีสคริปต์</p>
+                </div>
+            `;
+            return;
         }
 
-        function deleteScript(id) {
-            if (!currentUser || currentUser.role !== 'admin') {
-                showToast('เฉพาะแอดมินเท่านั้น!');
-                return;
-            }
-            if (confirm('คุณต้องการลบสคริปต์นี้ใช่หรือไม่?')) {
-                let scripts = JSON.parse(localStorage.getItem('sunlight_scripts')) || [];
-                scripts = scripts.filter(s => s.id !== id);
-                localStorage.setItem('sunlight_scripts', JSON.stringify(scripts));
-                loadScripts();
-                showToast('ลบสคริปต์เรียบร้อยแล้ว');
-            }
-        }
+        renderScriptCards(scripts);
+    }
 
-        function copyScriptUrl(url) {
-            navigator.clipboard.writeText(url).then(() => {
-                showToast('คัดลอกลิงก์/สคริปต์สำเร็จ! 📋');
-            }).catch(err => {
-                console.error('Copy failed', err);
-                showToast('ไม่สามารถคัดลอกได้');
-            });
-        }
+    function filterScripts() {
+        const query = document.getElementById('searchInput').value.toLowerCase();
+        let scripts = JSON.parse(localStorage.getItem('sunlight_scripts')) || [];
+        let filtered = scripts.filter(s => s.name.toLowerCase().includes(query) || s.creator.toLowerCase().includes(query));
+        renderScriptCards(filtered);
+    }
 
-        function loadScripts() {
-            const grid = document.getElementById('scriptsGrid');
-            const badge = document.getElementById('scriptCountBadge');
-            let scripts = JSON.parse(localStorage.getItem('sunlight_scripts')) || [];
+    function renderScriptCards(scripts) {
+        const grid = document.getElementById('scriptsGrid');
+        grid.innerHTML = '';
+
+        scripts.forEach(s => {
+            const card = document.createElement('div');
+            card.className = "glass-panel p-6 rounded-3xl flex flex-col justify-between transition-all duration-300 hover:border-neonPurple hover:neon-glow-sm relative group";
             
-            badge.innerText = `${scripts.length} รายการ`;
-
-            if (scripts.length === 0) {
-                grid.innerHTML = `
-                    <div class="col-span-full text-center py-16 glass-panel rounded-3xl">
-                        <div class="w-16 h-16 mx-auto mb-4 rounded-2xl bg-purple-900/30 border border-neonPurple/30 flex items-center justify-center text-neonPurple">
-                            <i class="fa-solid fa-folder-open text-2xl"></i>
-                        </div>
-                        <p class="text-gray-400 text-base font-medium">ยังไม่มีสคริปต์</p>
-                    </div>
+            let deleteBtnHtml = '';
+            if (currentUser && currentUser.role === 'admin') {
+                deleteBtnHtml = `
+                    <button onclick="deleteScript(${s.id})" class="bg-red-950/60 hover:bg-red-900 border border-red-500/40 text-red-300 px-3 py-2 rounded-xl text-xs font-medium transition-all duration-300 flex items-center gap-1.5">
+                        <i class="fa-solid fa-trash-can"></i> ลบ
+                    </button>
                 `;
-                return;
             }
 
-            renderScriptCards(scripts);
-        }
-
-        function filterScripts() {
-            const query = document.getElementById('searchInput').value.toLowerCase();
-            let scripts = JSON.parse(localStorage.getItem('sunlight_scripts')) || [];
-            let filtered = scripts.filter(s => s.name.toLowerCase().includes(query) || s.creator.toLowerCase().includes(query));
-            renderScriptCards(filtered);
-        }
-
-        function renderScriptCards(scripts) {
-            const grid = document.getElementById('scriptsGrid');
-            grid.innerHTML = '';
-
-            scripts.forEach(s => {
-                const card = document.createElement('div');
-                card.className = "glass-panel p-6 rounded-3xl flex flex-col justify-between transition-all duration-300 hover:border-neonPurple hover:neon-glow-sm relative group";
-                
-                let deleteBtnHtml = '';
-                if (currentUser && currentUser.role === 'admin') {
-                    deleteBtnHtml = `
-                        <button onclick="deleteScript(${s.id})" class="bg-red-950/60 hover:bg-red-900 border border-red-500/40 text-red-300 px-3 py-2 rounded-xl text-xs font-medium transition-all duration-300 flex items-center gap-1.5">
-                            <i class="fa-solid fa-trash-can"></i> ลบ
-                        </button>
-                    `;
-                }
-
-                card.innerHTML = `
-                    <div>
-                        <div class="flex items-start justify-between gap-4 mb-3">
-                            <h3 class="font-bold text-lg text-white group-hover:text-neonPurple transition-colors">${escapeHtml(s.name)}</h3>
-                            <span class="text-xs bg-purple-950/80 border border-purple-800 text-purple-300 px-2.5 py-1 rounded-full">
-                                โดย ${escapeHtml(s.creator)}
-                            </span>
-                        </div>
-                        <p class="text-gray-300 text-sm mb-6 leading-relaxed line-clamp-3">${escapeHtml(s.desc)}</p>
+            card.innerHTML = `
+                <div>
+                    <div class="flex items-start justify-between gap-4 mb-3">
+                        <h3 class="font-bold text-lg text-white group-hover:text-neonPurple transition-colors">${escapeHtml(s.name)}</h3>
+                        <span class="text-xs bg-purple-950/80 border border-purple-800 text-purple-300 px-2.5 py-1 rounded-full">
+                            โดย ${escapeHtml(s.creator)}
+                        </span>
                     </div>
-                    <div class="flex items-center gap-2 pt-4 border-t border-purple-900/30">
-                        <button onclick="copyScriptUrl('${escapeHtml(s.url)}')" class="flex-1 bg-neonPurple hover:bg-neonPurpleHover text-white py-2.5 px-3 rounded-xl text-xs font-medium transition-all duration-300 neon-glow-sm flex items-center justify-center gap-1.5">
-                            <i class="fa-solid fa-copy"></i> คัดลอกสคริปต์
-                        </button>
-                        ${deleteBtnHtml}
-                    </div>
-                `;
-                grid.appendChild(card);
-            });
-        }
+                    <p class="text-gray-300 text-sm mb-6 leading-relaxed line-clamp-3">${escapeHtml(s.desc)}</p>
+                </div>
+                <div class="flex items-center gap-2 pt-4 border-t border-purple-900/30">
+                    <button onclick="copyScriptUrl('${escapeHtml(s.url)}')" class="flex-1 bg-neonPurple hover:bg-neonPurpleHover text-white py-2.5 px-3 rounded-xl text-xs font-medium transition-all duration-300 neon-glow-sm flex items-center justify-center gap-1.5">
+                        <i class="fa-solid fa-copy"></i> คัดลอกสคริปต์
+                    </button>
+                    ${deleteBtnHtml}
+                </div>
+            `;
+            grid.appendChild(card);
+        });
+    }
 
-        function escapeHtml(text) {
-            if (typeof text !== 'string') return text;
-            const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
-            return text.replace(/[&<>"']/g, function(m) { return map[m]; });
-        }
+    function escapeHtml(text) {
+        if (typeof text !== 'string') return text;
+        const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
+        return text.replace(/[&<>"']/g, function(m) { return map[m]; });
+    }
 
-        function showToast(text) {
-            const toast = document.getElementById('toast');
-            document.getElementById('toastText').innerText = text;
-            toast.classList.remove('translate-y-20', 'opacity-0');
-            setTimeout(() => {
-                toast.classList.add('translate-y-20', 'opacity-0');
-            }, 3000);
-        }
-    </script>
-</body>
-</html>
+    function showToast(text) {
+        const toast = document.getElementById('toast');
+        document.getElementById('toastText').innerText = text;
+        toast.classList.remove('translate-y-20', 'opacity-0');
+        setTimeout(() => {
+            toast.classList.add('translate-y-20', 'opacity-0');
+        }, 3000);
+    }
+</script>
