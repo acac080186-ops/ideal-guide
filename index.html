@@ -59,9 +59,9 @@
 </head>
 <body class="bg-darkBg min-h-screen flex flex-col justify-between selection:bg-neonPurple selection:text-white">
 
-    <!-- YouTube Hidden Player for Looping Music (jthza-s_NEg) -->
+    <!-- YouTube Hidden Player for Looping Music (เอา autoplay ออก เพื่อไม่ให้เล่นเองก่อนกด) -->
     <div id="youtubePlayerContainer" class="hidden">
-        <iframe id="ytAudioPlayer" width="200" height="200" src="https://www.youtube.com/embed/jthza-s_NEg?enablejsapi=1&autoplay=1&loop=1&playlist=jthza-s_NEg" frameborder="0" allow="autoplay"></iframe>
+        <iframe id="ytAudioPlayer" width="200" height="200" src="https://www.youtube.com/embed/jthza-s_NEg?enablejsapi=1&loop=1&playlist=jthza-s_NEg" frameborder="0" allow="autoplay"></iframe>
     </div>
 
     <!-- ================= MUSIC PREFERENCE GUI MODAL ================= -->
@@ -372,7 +372,9 @@
                 events: {
                     'onStateChange': (event) => {
                         if (event.data === YT.PlayerState.ENDED) {
-                            player.playVideo();
+                            if (musicPlaying) {
+                                player.playVideo();
+                            }
                         }
                     }
                 }
@@ -443,7 +445,7 @@
                 main.classList.remove('hidden');
                 main.classList.add('flex');
 
-                // บังคับแสดงหน้าต่าง GUI เลือกเพลงทันทีที่เข้าหน้าหลัก
+                // แสดงหน้าต่างเลือกเพลงทันทีที่เข้าหน้าหลัก และเพลงจะไม่เล่นจนกว่าจะกดเลือก
                 document.getElementById('musicPromptModal').style.display = 'flex';
             }, 700);
         }
