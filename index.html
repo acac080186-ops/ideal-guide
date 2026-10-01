@@ -134,7 +134,7 @@
             </div>
 
             <h2 class="text-2xl font-bold mb-2">กรอกคีย์เข้าใช้งาน</h2>
-            <p class="text-gray-300 text-sm mb-6">กรุณากรอกคีย์ <code class="text-neonPurple font-mono bg-purple-950 px-2 py-0.5 rounded">Sunlight hub 2027/2570</code></p>
+            <p class="text-gray-300 text-sm mb-6">กรุณากรอกคีย์ <code class="text-neonPurple font-mono bg-purple-950 px-2 py-0.5 rounded">Sunlight hub 2026</code></p>
 
             <form onsubmit="verifyKey(event)" class="space-y-4">
                 <div>
@@ -146,7 +146,7 @@
             </form>
 
             <div id="keyErrorMsg" class="mt-4 p-3 rounded-xl bg-red-950/60 border border-red-500/40 text-red-300 text-xs text-center hidden flex items-center justify-center gap-2">
-                <i class="fa-solid fa-triangle-exclamation"></i> <span>คีย์ไม่ถูกต้อง! (ลองพิมพ์: Sunlight hub 2027/2570)</span>
+                <i class="fa-solid fa-triangle-exclamation"></i> <span>คีย์ไม่ถูกต้อง! (คีย์คือ: Sunlight hub 2026)</span>
             </div>
         </div>
     </div>
@@ -344,7 +344,7 @@
         let player = null;
         let musicPlaying = false;
 
-        const correctKey = "Sunlight hub 2027/2570";
+        const correctKey = "Sunlight hub 2026";
 
         const defaultScripts = [
             {
@@ -501,7 +501,6 @@
             const inputKey = document.getElementById('accessKeyInput').value.trim();
             const errorMsg = document.getElementById('keyErrorMsg');
 
-            // ตรวจสอบแบบเทียบสตริงตรงๆ (รองรับการตัดช่องว่างหัวท้ายให้อัตโนมัติ)
             if (inputKey === correctKey) {
                 localStorage.setItem('sunlight_key_verified', 'true');
                 document.getElementById('keySystemModal').style.display = 'none';
