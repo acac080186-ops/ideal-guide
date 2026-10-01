@@ -351,27 +351,13 @@
         const USER_KEY = 'sunlight_current_user';
         const USERS_DB_KEY = 'sunlight_users_db';
 
-        const defaultScripts = [
-            {
-                id: '1',
-                name: 'Sunlight Hub Ultimate Menu',
-                creator: 'Sunlight Official',
-                code: 'loadstring(game:HttpGet("https://raw.githubusercontent.com/sunlight/hub/main/loader.lua"))()',
-                description: 'สคริปต์ศูนย์รวมฟังก์ชันครบครัน ดีไซน์สวยงาม ลื่นไหล ไม่แลค รองรับทุกแพตช์ล่าสุด',
-                createdAt: Date.now() - 3600000
-            },
-            {
-                id: '2',
-                name: 'Auto Farm Pro Optimizer',
-                creator: 'DevMasterX',
-                code: 'loadstring(game:HttpGet("https://raw.githubusercontent.com/devmaster/autofarm/main/script.lua"))()',
-                description: 'ระบบฟาร์มรวดเร็ว ปรับแต่งความเร็วได้ดั่งใจ ป้องกันการเตะออกจากห้องได้เป็นอย่างดี',
-                createdAt: Date.now() - 7200000
-            }
-        ];
+        // ✅ แก้เป็น array ว่าง ไม่มีสคริปต์ตัวอย่างแล้ว
+        const defaultScripts = [];
 
         function initApp() {
-            if (!localStorage.getItem(SCRIPTS_KEY)) {
+            // ✅ แก้เงื่อนไขให้ตรวจสอบถูกต้อง (ถ้าว่างหรือไม่มี ให้สร้างใหม่)
+            const existing = localStorage.getItem(SCRIPTS_KEY);
+            if (!existing || JSON.parse(existing).length === 0) {
                 localStorage.setItem(SCRIPTS_KEY, JSON.stringify(defaultScripts));
             }
             if (!localStorage.getItem(USERS_DB_KEY)) {
