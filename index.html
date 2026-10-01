@@ -134,7 +134,7 @@
             </div>
 
             <h2 class="text-2xl font-bold mb-2">กรอกคีย์เข้าใช้งาน</h2>
-            <p class="text-gray-300 text-sm mb-6">กรุณากรอกคีย์เพื่อปลดล็อกเข้าสู่ Sunlight Hub</p>
+            <p class="text-gray-300 text-sm mb-6">กรุณากรอกคีย์ <code class="text-neonPurple font-mono bg-purple-950 px-2 py-0.5 rounded">Sunlight hub 2027/2570</code></p>
 
             <form onsubmit="verifyKey(event)" class="space-y-4">
                 <div>
@@ -146,7 +146,7 @@
             </form>
 
             <div id="keyErrorMsg" class="mt-4 p-3 rounded-xl bg-red-950/60 border border-red-500/40 text-red-300 text-xs text-center hidden flex items-center justify-center gap-2">
-                <i class="fa-solid fa-triangle-exclamation"></i> <span>คีย์ไม่ถูกต้อง! กรุณาตรวจสอบคีย์ใน Discord</span>
+                <i class="fa-solid fa-triangle-exclamation"></i> <span>คีย์ไม่ถูกต้อง! (ลองพิมพ์: Sunlight hub 2027/2570)</span>
             </div>
         </div>
     </div>
@@ -436,7 +436,6 @@
                 document.getElementById('mainApp').classList.remove('hidden');
                 document.getElementById('mainApp').classList.add('flex');
             } else if (entered === 'true') {
-                // ถ้าเข้าดิสแล้ว แต่ยังไม่ได้ใส่คีย์ ให้แสดงหน้าจอใส่คีย์
                 document.getElementById('welcomeScreen').style.display = 'none';
                 document.getElementById('keySystemModal').style.display = 'flex';
             }
@@ -493,7 +492,6 @@
             welcome.style.opacity = '0';
             setTimeout(() => {
                 welcome.style.display = 'none';
-                // แสดงหน้าต่างกรอกคีย์ต่อทันที
                 document.getElementById('keySystemModal').style.display = 'flex';
             }, 700);
         }
@@ -503,6 +501,7 @@
             const inputKey = document.getElementById('accessKeyInput').value.trim();
             const errorMsg = document.getElementById('keyErrorMsg');
 
+            // ตรวจสอบแบบเทียบสตริงตรงๆ (รองรับการตัดช่องว่างหัวท้ายให้อัตโนมัติ)
             if (inputKey === correctKey) {
                 localStorage.setItem('sunlight_key_verified', 'true');
                 document.getElementById('keySystemModal').style.display = 'none';
@@ -637,7 +636,7 @@
 
             if (user === 'Sunlight hub 2626') {
                 document.getElementById('errorText').innerText = "ชื่อผู้ใช้นี้ถูกสงวนไว้สำหรับแอดมิน!";
-                document.getElementById('authErrorMsg').classList.remove('hidden');
+                document.getElementById('authErrorMsg').classList.add('hidden');
                 return;
             }
 
@@ -646,7 +645,7 @@
 
             if (exists) {
                 document.getElementById('errorText').innerText = "ชื่อผู้ใช้นี้ถูกใช้งานไปแล้ว!";
-                document.getElementById('authErrorMsg').classList.remove('hidden');
+                document.getElementById('authErrorMsg').classList.add('hidden');
                 return;
             }
 
