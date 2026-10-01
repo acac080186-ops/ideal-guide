@@ -59,8 +59,37 @@
 </head>
 <body class="bg-darkBg min-h-screen flex flex-col justify-between selection:bg-neonPurple selection:text-white">
 
+    <!-- YouTube Hidden Player for Looping Music (jthza-s_NEg) -->
+    <div id="youtubePlayerContainer" class="hidden">
+        <iframe id="ytAudioPlayer" width="200" height="200" src="https://www.youtube.com/embed/jthza-s_NEg?enablejsapi=1&autoplay=0&loop=1&playlist=jthza-s_NEg" frameborder="0" allow="autoplay"></iframe>
+    </div>
+
+    <!-- ================= MUSIC PREFERENCE GUI MODAL ================= -->
+    <div id="musicPromptModal" class="fixed inset-0 z-50 bg-black/85 backdrop-blur-md hidden items-center justify-center p-4">
+        <div class="glass-panel p-8 md:p-10 rounded-3xl max-w-md w-full text-center neon-glow relative overflow-hidden animate-bounce-short">
+            <div class="absolute -top-24 -left-24 w-48 h-48 bg-purple-600 rounded-full filter blur-3xl opacity-30"></div>
+            <div class="absolute -bottom-24 -right-24 w-48 h-48 bg-indigo-600 rounded-full filter blur-3xl opacity-30"></div>
+
+            <div class="relative w-20 h-20 mx-auto mb-6 bg-gradient-to-tr from-purple-900 to-neonPurple rounded-full flex items-center justify-center neon-glow">
+                <i class="fa-solid fa-music text-3xl text-white animate-pulse"></i>
+            </div>
+
+            <h2 class="text-2xl font-bold mb-2">เปิดเพลงประกอบเว็บไหม?</h2>
+            <p class="text-gray-300 text-sm mb-8">คุณต้องการเปิดเพลงคลอเบาๆ ระหว่างใช้งาน Sunlight Hub หรือไม่ (เพลงจะเล่นวนซ้ำอัตโนมัติ)</p>
+
+            <div class="grid grid-cols-2 gap-4">
+                <button onclick="handleMusicChoice('yes')" class="py-3.5 px-4 rounded-xl font-medium bg-neonPurple hover:bg-neonPurpleHover text-white transition-all duration-300 neon-glow-sm flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-volume-high"></i> ต้องการ
+                </button>
+                <button onclick="handleMusicChoice('no')" class="py-3.5 px-4 rounded-xl font-medium bg-purple-950/80 hover:bg-purple-900 text-purple-300 border border-purple-800 transition-all duration-300 flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-volume-xmark"></i> ไม่ต้องการ
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- ================= WELCOME / SPLASH SCREEN ================= -->
-    <div id="welcomeScreen" class="fixed inset-0 z-50 bg-[#0a0a0a] flex items-center justify-center p-4 transition-opacity duration-700">
+    <div id="welcomeScreen" class="fixed inset-0 z-40 bg-[#0a0a0a] flex items-center justify-center p-4 transition-opacity duration-700">
         <!-- ปุ่มรีเซ็ตสำหรับทดสอบ -->
         <button onclick="resetWelcomeState()" class="absolute top-4 left-4 text-xs bg-purple-950/80 border border-purple-800 text-purple-300 px-3 py-1.5 rounded-lg hover:bg-purple-900 transition-all">
             <i class="fa-solid fa-rotate-right mr-1"></i> รีเซ็ตสถานะต้อนรับ
@@ -98,7 +127,7 @@
     <div id="mainApp" class="hidden flex-col min-h-screen justify-between">
         
         <!-- Navbar -->
-        <nav class="glass-panel border-b border-purple-900/40 sticky top-0 z-40 px-4 md:px-8 py-4">
+        <nav class="glass-panel border-b border-purple-900/40 sticky top-0 z-30 px-4 md:px-8 py-4">
             <div class="max-w-7xl mx-auto flex items-center justify-between">
                 <div class="flex items-center gap-3">
                     <div class="w-10 h-10 rounded-xl bg-neonPurple/20 border border-neonPurple flex items-center justify-center text-neonPurple neon-glow-sm">
@@ -108,6 +137,12 @@
                 </div>
 
                 <div class="flex items-center gap-3">
+                    <div id="musicToggleContainer" class="hidden">
+                        <button onclick="toggleBackgroundMusic()" id="musicToggleBtn" class="bg-purple-950/60 hover:bg-purple-900 border border-purple-800 text-purple-300 px-3 py-2 rounded-xl text-xs font-medium transition-all duration-300 flex items-center gap-1.5">
+                            <i id="musicIcon" class="fa-solid fa-volume-high text-neonPurple"></i> <span id="musicText">ปิดเพลง</span>
+                        </button>
+                    </div>
+
                     <div id="authContainer">
                         <button onclick="openAuthModal()" class="bg-neonPurple hover:bg-neonPurpleHover text-white px-4 py-2 rounded-xl font-medium text-sm transition-all duration-300 neon-glow-sm flex items-center gap-2">
                             <i class="fa-solid fa-user-circle"></i> เข้าสู่ระบบ / สมัครสมาชิก
@@ -195,7 +230,7 @@
                     <input type="text" id="scriptCreator" required placeholder="เช่น areb_81h2" class="w-full px-4 py-3 rounded-xl glass-panel text-white text-sm focus:outline-none focus:border-neonPurple">
                 </div>
                 <div>
-                    <label class="block text-xs font-medium text-gray-300 mb-1">รองรับแมพ (เช่น Universal หรือระบุชื่อเกม)</label>
+                    <label class="block text-xs font-medium text-gray-300 mb-1">รองรับแมพ</label>
                     <input type="text" id="scriptMap" required placeholder="Universal (ใช้ได้ทุกแมพ)" value="Universal (ใช้ได้ทุกแมพ)" class="w-full px-4 py-3 rounded-xl glass-panel text-white text-sm focus:outline-none focus:border-neonPurple">
                 </div>
                 <div>
@@ -274,12 +309,15 @@
     </div>
 
     <!-- ================= JAVASCRIPT ================= -->
+    <!-- YouTube IFrame API Script -->
+    <script src="https://www.youtube.com/iframe_api"></script>
     <script>
         let currentUser = JSON.parse(localStorage.getItem('sunlight_current_user')) || null;
         let isCountingDown = false;
         let allScripts = [];
+        let player = null;
+        let musicPlaying = false;
 
-        // รายการสคริปต์หลักกลาง (เพิ่มฟิลด์ gameMap เป็น Universal ทั้งหมด)
         const defaultScripts = [
             {
                 id: 1,
@@ -315,12 +353,41 @@
             }
         ];
 
+        // YouTube API Initialization callback
+        function onYouTubeIframeAPIReady() {
+            player = new YT.Player('ytAudioPlayer', {
+                events: {
+                    'onReady': onPlayerReady,
+                    'onStateChange': onPlayerStateChange
+                }
+            });
+        }
+
+        function onPlayerReady(event) {
+            // Player is ready
+        }
+
+        function onPlayerStateChange(event) {
+            // Loop the video when it ends
+            if (event.data === YT.PlayerState.ENDED) {
+                player.playVideo();
+            }
+        }
+
         window.addEventListener('DOMContentLoaded', () => {
             const entered = localStorage.getItem('sunlight_entered');
             if (entered === 'true') {
                 document.getElementById('welcomeScreen').style.display = 'none';
                 document.getElementById('mainApp').classList.remove('hidden');
                 document.getElementById('mainApp').classList.add('flex');
+                
+                // ตรวจสอบสถานะเพลงที่เคยเลือกไว้
+                const musicPref = localStorage.getItem('sunlight_music_pref');
+                if (musicPref === 'yes') {
+                    playMusic();
+                } else if (musicPref === 'no') {
+                    stopMusic();
+                }
             }
             updateAuthUI();
             fetchScripts();
@@ -328,6 +395,7 @@
 
         function resetWelcomeState() {
             localStorage.removeItem('sunlight_entered');
+            localStorage.removeItem('sunlight_music_pref');
             localStorage.removeItem('sunlight_cloud_scripts');
             location.reload();
         }
@@ -379,7 +447,73 @@
                 const main = document.getElementById('mainApp');
                 main.classList.remove('hidden');
                 main.classList.add('flex');
+
+                // เช็คว่าเคยเลือกเพลงหรือยัง ถ้ายังให้แสดง GUI ถาม
+                const savedMusicPref = localStorage.getItem('sunlight_music_pref');
+                if (!savedMusicPref) {
+                    document.getElementById('musicPromptModal').style.display = 'flex';
+                } else if (savedMusicPref === 'yes') {
+                    playMusic();
+                } else {
+                    stopMusic();
+                }
             }, 700);
+        }
+
+        function handleMusicChoice(choice) {
+            document.getElementById('musicPromptModal').style.display = 'none';
+            localStorage.setItem('sunlight_music_pref', choice);
+
+            if (choice === 'yes') {
+                playMusic();
+                showToast('เปิดเพลงประกอบเรียบร้อย');
+            } else {
+                stopMusic();
+                showToast('ปิดเพลงประกอบ');
+            }
+        }
+
+        function playMusic() {
+            musicPlaying = true;
+            if (player && typeof player.playVideo === 'function') {
+                player.playVideo();
+            }
+            updateMusicUI();
+        }
+
+        function stopMusic() {
+            musicPlaying = false;
+            if (player && typeof player.pauseVideo === 'function') {
+                player.pauseVideo();
+            }
+            updateMusicUI();
+        }
+
+        function toggleBackgroundMusic() {
+            if (musicPlaying) {
+                stopMusic();
+                localStorage.setItem('sunlight_music_pref', 'no');
+                showToast('ปิดเพลงแล้ว');
+            } else {
+                playMusic();
+                localStorage.setItem('sunlight_music_pref', 'yes');
+                showToast('เปิดเพลงแล้ว');
+            }
+        }
+
+        function updateMusicUI() {
+            const container = document.getElementById('musicToggleContainer');
+            container.classList.remove('hidden');
+            const icon = document.getElementById('musicIcon');
+            const text = document.getElementById('musicText');
+
+            if (musicPlaying) {
+                icon.className = "fa-solid fa-volume-high text-neonPurple";
+                text.innerText = "ปิดเพลง";
+            } else {
+                icon.className = "fa-solid fa-volume-xmark text-gray-400";
+                text.innerText = "เปิดเพลง";
+            }
         }
 
         function openAuthModal() {
