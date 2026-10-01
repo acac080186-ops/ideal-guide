@@ -195,6 +195,10 @@
                     <input type="text" id="scriptCreator" required placeholder="เช่น areb_81h2" class="w-full px-4 py-3 rounded-xl glass-panel text-white text-sm focus:outline-none focus:border-neonPurple">
                 </div>
                 <div>
+                    <label class="block text-xs font-medium text-gray-300 mb-1">รองรับแมพ (เช่น Universal หรือระบุชื่อเกม)</label>
+                    <input type="text" id="scriptMap" required placeholder="Universal (ใช้ได้ทุกแมพ)" value="Universal (ใช้ได้ทุกแมพ)" class="w-full px-4 py-3 rounded-xl glass-panel text-white text-sm focus:outline-none focus:border-neonPurple">
+                </div>
+                <div>
                     <label class="block text-xs font-medium text-gray-300 mb-1">ลิงก์ดาวน์โหลด (URL หรือ โค้ดสคริปต์)</label>
                     <input type="text" id="scriptUrl" required placeholder="https://..." class="w-full px-4 py-3 rounded-xl glass-panel text-white text-sm focus:outline-none focus:border-neonPurple">
                 </div>
@@ -275,12 +279,13 @@
         let isCountingDown = false;
         let allScripts = [];
 
-        // รายการสคริปต์หลักกลาง (กำหนดให้ผู้สร้างเป็น areb_81h2 ทั้งหมดตามต้องการ)
+        // รายการสคริปต์หลักกลาง (เพิ่มฟิลด์ gameMap เป็น Universal ทั้งหมด)
         const defaultScripts = [
             {
                 id: 1,
                 name: 'Touch fling',
                 creator: 'areb_81h2',
+                gameMap: 'Universal (ใช้ได้ทุกแมพ)',
                 url: 'loadstring(game:HttpGet("https://pastefy.app/YDjomyL0/raw"))()',
                 desc: 'เมื่อเปิดฟังก์ชันและเดินไปใกล้ผู้เล่นคนอื่น จะทำให้ผู้เล่นคนอื่นกระเด็นหนีไปทันที'
             },
@@ -288,6 +293,7 @@
                 id: 2,
                 name: 'Clone player',
                 creator: 'areb_81h2',
+                gameMap: 'Universal (ใช้ได้ทุกแมพ)',
                 url: 'loadstring(game:HttpGet("https://pastefy.app/1u13Zaug/raw"))()',
                 desc: 'โคลนตัวละครของเรามา 1 คน สามารถกดวาร์ปสลับไปหาตัวที่โคลนและตัวที่เพิ่งวาร์ปออกมาได้สะดวก'
             },
@@ -295,6 +301,7 @@
                 id: 3,
                 name: 'Sunlight Dex 1.0',
                 creator: 'areb_81h2',
+                gameMap: 'Universal (ใช้ได้ทุกแมพ)',
                 url: 'loadstring(game:HttpGet("https://dpaste.com/8WPSRDSMT.txt"))()',
                 desc: 'ทำหน้าที่เหมือน Dex ทั่วไป ค้นหาและตรวจสอบ Instance ภายในเกมได้อย่างสะดวก'
             },
@@ -302,6 +309,7 @@
                 id: 4,
                 name: 'NPC ผู้สร้างคนเดิม (Clone NPC)',
                 creator: 'areb_81h2',
+                gameMap: 'Universal (ใช้ได้ทุกแมพ)',
                 url: 'loadstring(game:HttpGet("https://pastefy.app/UmUjJxMA/raw"))()',
                 desc: 'ทำการโคลน NPC ที่เหมือนตัวเรามา สามารถสั่งการควบคุมคำสั่งได้โดยตรงในตัวสคริปต์'
             }
@@ -320,7 +328,7 @@
 
         function resetWelcomeState() {
             localStorage.removeItem('sunlight_entered');
-            localStorage.removeItem('sunlight_cloud_scripts'); // ล้างแคชเก่าเพื่อให้โหลดชุดใหม่ทันที
+            localStorage.removeItem('sunlight_cloud_scripts');
             location.reload();
         }
 
@@ -524,10 +532,11 @@
 
             const name = document.getElementById('scriptName').value;
             const creator = document.getElementById('scriptCreator').value;
+            const gameMap = document.getElementById('scriptMap').value;
             const url = document.getElementById('scriptUrl').value;
             const desc = document.getElementById('scriptDesc').value;
 
-            const newScript = { id: Date.now(), name, creator, url, desc };
+            const newScript = { id: Date.now(), name, creator, gameMap, url, desc };
             allScripts.unshift(newScript);
 
             localStorage.setItem('sunlight_cloud_scripts', JSON.stringify(allScripts));
@@ -556,7 +565,7 @@
 
         function filterScripts() {
             const query = document.getElementById('searchInput').value.toLowerCase();
-            const filtered = allScripts.filter(s => s.name.toLowerCase().includes(query) || s.creator.toLowerCase().includes(query));
+            const filtered = allScripts.filter(s => s.name.toLowerCase().includes(query) || s.creator.toLowerCase().includes(query) || (s.gameMap && s.gameMap.toLowerCase().includes(query)));
             renderScriptCards(filtered);
         }
 
@@ -591,12 +600,19 @@
                     `;
                 }
 
+                let mapBadge = s.gameMap ? s.gameMap : 'Universal (ใช้ได้ทุกแมพ)';
+
                 card.innerHTML = `
                     <div>
-                        <div class="flex items-start justify-between gap-4 mb-3">
+                        <div class="flex items-start justify-between gap-4 mb-2">
                             <h3 class="font-bold text-lg text-white group-hover:text-neonPurple transition-colors">${escapeHtml(s.name)}</h3>
-                            <span class="text-xs bg-purple-950/80 border border-purple-800 text-purple-300 px-2.5 py-1 rounded-full">
+                            <span class="text-xs bg-purple-950/80 border border-purple-800 text-purple-300 px-2.5 py-1 rounded-full whitespace-nowrap">
                                 โดย ${escapeHtml(s.creator)}
+                            </span>
+                        </div>
+                        <div class="mb-3">
+                            <span class="inline-flex items-center gap-1 text-xs font-medium text-neonPurple bg-purple-950/40 border border-neonPurple/30 px-2.5 py-1 rounded-lg">
+                                <i class="fa-solid fa-gamepad"></i> ${escapeHtml(mapBadge)}
                             </span>
                         </div>
                         <p class="text-gray-300 text-sm mb-6 leading-relaxed line-clamp-3">${escapeHtml(s.desc)}</p>
