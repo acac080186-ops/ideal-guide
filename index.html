@@ -143,7 +143,7 @@
         <main class="max-w-7xl mx-auto px-4 md:px-8 py-6 flex-grow w-full">
             <div class="flex items-center justify-between mb-6">
                 <h2 class="text-lg md:text-xl font-semibold flex items-center gap-2 text-white">
-                    <i class="fa-solid fa-code text-neonPurple"></i> รายการสคริปต์ที่เพิ่งอัปโหลด
+                    <i class="fa-solid fa-code text-neonPurple"></i> รายการสคริปต์ทั้งหมด
                 </h2>
                 <span id="scriptCountBadge" class="text-xs bg-purple-900/60 border border-neonPurple/40 text-neonPurple px-3 py-1 rounded-full font-medium">0 รายการ</span>
             </div>
@@ -275,7 +275,7 @@
         let isCountingDown = false;
         let allScripts = [];
 
-        // รายการสคริปต์ตั้งต้นทั้ง 4 ตัว
+        // รายการสคริปต์หลักกลาง (ทุกคนที่เข้าเว็บจะเห็นชุดนี้เหมือนกันทั้งหมดทันที)
         const defaultScripts = [
             {
                 id: 1,
@@ -320,6 +320,7 @@
 
         function resetWelcomeState() {
             localStorage.removeItem('sunlight_entered');
+            localStorage.removeItem('sunlight_cloud_scripts'); // ล้างแคชสคริปต์เก่าเพื่อให้โหลดชุดใหม่ทันที
             location.reload();
         }
 
@@ -407,7 +408,6 @@
             const user = document.getElementById('loginUser').value.trim();
             const pass = document.getElementById('loginPass').value;
 
-            // บัญชีแอดมินหลัก
             if (user === 'Sunlight hub 2626' && pass === 'Sunlight shop 2626') {
                 currentUser = { username: 'Sunlight hub 2626', role: 'admin' };
                 localStorage.setItem('sunlight_current_user', JSON.stringify(currentUser));
@@ -417,7 +417,6 @@
                 return;
             }
 
-            // ตรวจสอบบัญชีที่สมัครสมาชิกไว้ใน LocalStorage
             let users = JSON.parse(localStorage.getItem('sunlight_registered_users')) || [];
             let found = users.find(u => u.username === user && u.password === pass);
 
@@ -503,12 +502,17 @@
         }
 
         function fetchScripts() {
+            // บังคับใช้ค่าเริ่มต้นชุดล่าสุดเสมอ เพื่อให้ทุกคนที่เข้าเว็บเห็นสคริปต์ตรงกัน
+            allScripts = defaultScripts;
             let localData = localStorage.getItem('sunlight_cloud_scripts');
-            if (!localData) {
-                allScripts = defaultScripts;
-                localStorage.setItem('sunlight_cloud_scripts', JSON.stringify(allScripts));
-            } else {
-                allScripts = JSON.parse(localData);
+            if (localData) {
+                try {
+                    let parsed = JSON.parse(localData);
+                    // ถ้ารายการในเครื่องมีน้อยกว่าค่าเริ่มต้น ให้ใช้ค่าเริ่มต้นแทน
+                    if (parsed.length >= defaultScripts.length) {
+                        allScripts = parsed;
+                    }
+                } catch(e) {}
             }
             renderScriptCards(allScripts);
         }
