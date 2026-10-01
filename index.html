@@ -255,17 +255,31 @@
         let isCountingDown = false;
         let allScripts = [];
 
-        // ค่าเริ่มต้นสคริปต์ทั้ง 2 ตัวที่คุณขอ
+        // รายการสคริปต์ตั้งต้นทั้ง 4 ตัว
         const defaultScripts = [
             {
                 id: 1,
+                name: 'Touch fling',
+                creator: 'ผู้สร้างคนเดิม',
+                url: 'loadstring(game:HttpGet("https://pastefy.app/YDjomyL0/raw"))()',
+                desc: 'เมื่อเปิดฟังก์ชันและเดินไปใกล้ผู้เล่นคนอื่น จะทำให้ผู้เล่นคนอื่นกระเด็นหนีไปทันที'
+            },
+            {
+                id: 2,
+                name: 'Clone player',
+                creator: 'ผู้สร้างคนเดิม',
+                url: 'loadstring(game:HttpGet("https://pastefy.app/1u13Zaug/raw"))()',
+                desc: 'โคลนตัวละครของเรามา 1 คน สามารถกดวาร์ปสลับไปหาตัวที่โคลนและตัวที่เพิ่งวาร์ปออกมาได้สะดวก'
+            },
+            {
+                id: 3,
                 name: 'Sunlight Dex 1.0',
                 creator: 'areb_01h2',
                 url: 'loadstring(game:HttpGet("https://dpaste.com/8WPSRDSMT.txt"))()',
                 desc: 'ทำหน้าที่เหมือน Dex ทั่วไป ค้นหาและตรวจสอบ Instance ภายในเกมได้อย่างสะดวก'
             },
             {
-                id: 2,
+                id: 4,
                 name: 'NPC ผู้สร้างคนเดิม (Clone NPC)',
                 creator: 'areb_01h2',
                 url: 'loadstring(game:HttpGet("https://pastefy.app/UmUjJxMA/raw"))()',
