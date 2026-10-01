@@ -123,6 +123,34 @@
         </div>
     </div>
 
+    <!-- ================= KEY SYSTEM MODAL ================= -->
+    <div id="keySystemModal" class="fixed inset-0 z-40 bg-black/85 backdrop-blur-md hidden items-center justify-center p-4">
+        <div class="glass-panel p-8 md:p-10 rounded-3xl max-w-md w-full text-center neon-glow relative overflow-hidden">
+            <div class="absolute -top-24 -left-24 w-48 h-48 bg-purple-600 rounded-full filter blur-3xl opacity-30"></div>
+            <div class="absolute -bottom-24 -right-24 w-48 h-48 bg-indigo-600 rounded-full filter blur-3xl opacity-30"></div>
+
+            <div class="relative w-20 h-20 mx-auto mb-6 bg-gradient-to-tr from-purple-900 to-neonPurple rounded-full flex items-center justify-center neon-glow">
+                <i class="fa-solid fa-key text-3xl text-white"></i>
+            </div>
+
+            <h2 class="text-2xl font-bold mb-2">กรอกคีย์เข้าใช้งาน</h2>
+            <p class="text-gray-300 text-sm mb-6">กรุณากรอกคีย์เพื่อปลดล็อกเข้าสู่ Sunlight Hub</p>
+
+            <form onsubmit="verifyKey(event)" class="space-y-4">
+                <div>
+                    <input type="text" id="accessKeyInput" required placeholder="กรอกคีย์ที่นี่..." class="w-full px-4 py-3.5 rounded-xl glass-panel text-white text-center text-sm focus:outline-none focus:border-neonPurple placeholder-gray-500">
+                </div>
+                <button type="submit" class="w-full py-3.5 px-4 rounded-xl font-medium bg-neonPurple hover:bg-neonPurpleHover text-white transition-all duration-300 neon-glow-sm flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-shield-check"></i> ตรวจสอบคีย์
+                </button>
+            </form>
+
+            <div id="keyErrorMsg" class="mt-4 p-3 rounded-xl bg-red-950/60 border border-red-500/40 text-red-300 text-xs text-center hidden flex items-center justify-center gap-2">
+                <i class="fa-solid fa-triangle-exclamation"></i> <span>คีย์ไม่ถูกต้อง! กรุณาตรวจสอบคีย์ใน Discord</span>
+            </div>
+        </div>
+    </div>
+
     <!-- ================= MAIN WEBSITE CONTAINER ================= -->
     <div id="mainApp" class="hidden flex-col min-h-screen justify-between">
         
@@ -316,6 +344,8 @@
         let player = null;
         let musicPlaying = false;
 
+        const correctKey = "Sunlight hub 2027/2570";
+
         const defaultScripts = [
             {
                 id: 1,
@@ -399,10 +429,16 @@
 
         window.addEventListener('DOMContentLoaded', () => {
             const entered = localStorage.getItem('sunlight_entered');
-            if (entered === 'true') {
+            const keyVerified = localStorage.getItem('sunlight_key_verified');
+
+            if (entered === 'true' && keyVerified === 'true') {
                 document.getElementById('welcomeScreen').style.display = 'none';
                 document.getElementById('mainApp').classList.remove('hidden');
                 document.getElementById('mainApp').classList.add('flex');
+            } else if (entered === 'true') {
+                // ถ้าเข้าดิสแล้ว แต่ยังไม่ได้ใส่คีย์ ให้แสดงหน้าจอใส่คีย์
+                document.getElementById('welcomeScreen').style.display = 'none';
+                document.getElementById('keySystemModal').style.display = 'flex';
             }
             updateAuthUI();
             fetchScripts();
@@ -457,12 +493,29 @@
             welcome.style.opacity = '0';
             setTimeout(() => {
                 welcome.style.display = 'none';
+                // แสดงหน้าต่างกรอกคีย์ต่อทันที
+                document.getElementById('keySystemModal').style.display = 'flex';
+            }, 700);
+        }
+
+        function verifyKey(e) {
+            e.preventDefault();
+            const inputKey = document.getElementById('accessKeyInput').value.trim();
+            const errorMsg = document.getElementById('keyErrorMsg');
+
+            if (inputKey === correctKey) {
+                localStorage.setItem('sunlight_key_verified', 'true');
+                document.getElementById('keySystemModal').style.display = 'none';
+                
                 const main = document.getElementById('mainApp');
                 main.classList.remove('hidden');
                 main.classList.add('flex');
 
                 document.getElementById('musicPromptModal').style.display = 'flex';
-            }, 700);
+                showToast('ยืนยันคีย์สำเร็จ!');
+            } else {
+                errorMsg.classList.remove('hidden');
+            }
         }
 
         function handleMusicChoice(choice) {
