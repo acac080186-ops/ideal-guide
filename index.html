@@ -219,7 +219,7 @@
             </button>
 
             <div class="flex rounded-xl bg-purple-950/60 p-1 mb-6 border border-purple-900/40">
-                <button id="jsonServerTab" class="flex-1 py-2.5 rounded-lg text-sm font-medium transition-all duration-300 bg-neonPurple text-white">เข้าสู่ระบบ</button>
+                <button class="flex-1 py-2.5 rounded-lg text-sm font-medium transition-all duration-300 bg-neonPurple text-white">เข้าสู่ระบบ</button>
             </div>
 
             <form id="loginForm" onsubmit="handleLogin(event)" class="space-y-4">
@@ -249,14 +249,29 @@
         <i class="fa-solid fa-circle-check text-neonPurple"></i> <span id="toastText">สำเร็จ!</span>
     </div>
 
-    <!-- ================= JAVASCRIPT & SHARED STORAGE ================= -->
+    <!-- ================= JAVASCRIPT ================= -->
     <script>
         let currentUser = JSON.parse(localStorage.getItem('sunlight_current_user')) || null;
         let isCountingDown = false;
         let allScripts = [];
 
-        // ใช้ JSONBin ฟรีสำหรับการเชื่อมข้อมูลข้ามเครื่องแบบไม่ต้องตั้งค่า Firebase เอง
-        const BIN_URL = 'https://api.jsonbin.io/v3/b/670d8a43ad19ca34f8edc529'; // Cloud Storage กลาง
+        // ค่าเริ่มต้นสคริปต์ทั้ง 2 ตัวที่คุณขอ
+        const defaultScripts = [
+            {
+                id: 1,
+                name: 'Sunlight Dex 1.0',
+                creator: 'areb_01h2',
+                url: 'loadstring(game:HttpGet("https://dpaste.com/8WPSRDSMT.txt"))()',
+                desc: 'ทำหน้าที่เหมือน Dex ทั่วไป ค้นหาและตรวจสอบ Instance ภายในเกมได้อย่างสะดวก'
+            },
+            {
+                id: 2,
+                name: 'NPC ผู้สร้างคนเดิม (Clone NPC)',
+                creator: 'areb_01h2',
+                url: 'loadstring(game:HttpGet("https://pastefy.app/UmUjJxMA/raw"))()',
+                desc: 'ทำการโคลน NPC ที่เหมือนตัวเรามา สามารถสั่งการควบคุมคำสั่งได้โดยตรงในตัวสคริปต์'
+            }
+        ];
 
         window.addEventListener('DOMContentLoaded', () => {
             const entered = localStorage.getItem('sunlight_entered');
@@ -390,23 +405,15 @@
             modal.style.display = modal.style.display === 'flex' ? 'none' : 'flex';
         }
 
-        // ดึงข้อมูลสคริปต์จาก Cloud กลาง
-        async function fetchScripts() {
-            try {
-                const res = await fetch(BIN_URL + '/latest', {
-                    headers: { 'X-Master-Key': '$2a$10$7XbVzQyJ... (Public)' }
-                });
-                // ใช้ Fallback เก็บลง localStorage ร่วมกับ Cloud จำลองเพื่อให้ใช้งานได้ลื่นไหลทันที
-                const localData = localStorage.getItem('sunlight_cloud_scripts');
-                allScripts = localData ? JSON.parse(localData) : [
-                    { id: 1, name: 'Sunlight Dex 1.0', creator: 'areb_01h2', url: 'https://example.com', desc: 'ทำหน้าที่เหมือน Dex ทั่วไป' }
-                ];
-                renderScriptCards(allScripts);
-            } catch (e) {
-                let localData = localStorage.getItem('sunlight_cloud_scripts');
-                allScripts = localData ? JSON.parse(localData) : [];
-                renderScriptCards(allScripts);
+        function fetchScripts() {
+            let localData = localStorage.getItem('sunlight_cloud_scripts');
+            if (!localData) {
+                allScripts = defaultScripts;
+                localStorage.setItem('sunlight_cloud_scripts', JSON.stringify(allScripts));
+            } else {
+                allScripts = JSON.parse(localData);
             }
+            renderScriptCards(allScripts);
         }
 
         function saveScript(e) {
@@ -424,13 +431,12 @@
             const newScript = { id: Date.now(), name, creator, url, desc };
             allScripts.unshift(newScript);
 
-            // บันทึกลงเครื่องและจำลองการซิงค์
             localStorage.setItem('sunlight_cloud_scripts', JSON.stringify(allScripts));
 
             document.getElementById('scriptForm').reset();
             toggleAdminPanel();
             renderScriptCards(allScripts);
-            showToast('บันทึกและซิงค์สคริปต์สำเร็จ!');
+            showToast('บันทึกสคริปต์สำเร็จ!');
         }
 
         function deleteScript(id) {
@@ -445,7 +451,7 @@
 
         function copyScriptUrl(url) {
             navigator.clipboard.writeText(url).then(() => {
-                showToast('คัดลอกสคริปต์สำเร็จ!');
+                showToast('คัดลอก Loadstring สำเร็จ!');
             });
         }
 
