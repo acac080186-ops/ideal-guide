@@ -350,16 +350,29 @@
         const SCRIPTS_KEY = 'sunlight_scripts';
         const USER_KEY = 'sunlight_current_user';
         const USERS_DB_KEY = 'sunlight_users_db';
+        const VERSION_KEY = 'sunlight_version';
+        const CURRENT_VERSION = 'v2'; // 🔄 เปลี่ยนเลขนี้ทุกครั้งที่อัปเดตโค้ดใหม่
 
-        // ✅ แก้เป็น array ว่าง ไม่มีสคริปต์ตัวอย่างแล้ว
+        // ✅ ไม่มีสคริปต์ตัวอย่างแล้ว
         const defaultScripts = [];
 
         function initApp() {
-            // ✅ แก้เงื่อนไขให้ตรวจสอบถูกต้อง (ถ้าว่างหรือไม่มี ให้สร้างใหม่)
+            // 🧹 ตรวจสอบเวอร์ชัน - ถ้าไม่ตรง ให้ล้าง localStorage เก่าออก
+            if (localStorage.getItem(VERSION_KEY) !== CURRENT_VERSION) {
+                localStorage.removeItem(SCRIPTS_KEY);
+                localStorage.removeItem(USER_KEY);
+                localStorage.removeItem(USERS_DB_KEY);
+                localStorage.setItem(VERSION_KEY, CURRENT_VERSION);
+                console.log('🔄 อัปเดตเวอร์ชันเป็น ' + CURRENT_VERSION + ' และล้างข้อมูลเก่าแล้ว');
+            }
+
+            // สร้างข้อมูลสคริปต์เริ่มต้น (ว่างเปล่า)
             const existing = localStorage.getItem(SCRIPTS_KEY);
             if (!existing || JSON.parse(existing).length === 0) {
                 localStorage.setItem(SCRIPTS_KEY, JSON.stringify(defaultScripts));
             }
+
+            // สร้างบัญชี Admin
             if (!localStorage.getItem(USERS_DB_KEY)) {
                 const initialUsers = [
                     {
