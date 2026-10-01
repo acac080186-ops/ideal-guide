@@ -104,20 +104,20 @@
             </div>
 
             <h1 class="text-2xl md:text-3xl font-bold mb-2">ยินดีต้อนรับสู่ Sunlight Hub</h1>
-            <p class="text-gray-300 text-sm md:text-base mb-6">กรุณาเข้าร่วม Discord เพื่อเข้าใช้งานเว็บ</p>
+            <p class="text-gray-300 text-sm md:text-base mb-6">กรุณาเข้าร่วม Discord เพื่อไปเอาคีย์เข้าใช้งานเว็บ</p>
 
             <div class="space-y-4">
                 <button id="discordBtn" onclick="joinDiscord()" class="w-full py-3.5 px-4 rounded-xl font-medium bg-[#5865F2] hover:bg-[#4752C4] text-white transition-all duration-300 flex items-center justify-center gap-3 shadow-lg">
-                    <i class="fa-brands fa-discord text-xl"></i> <span id="discordBtnText">เข้าร่วม Discord</span>
+                    <i class="fa-brands fa-discord text-xl"></i> <span id="discordBtnText">เข้าร่วม Discord (เพื่อรับคีย์)</span>
                 </button>
 
                 <button id="enterWebBtn" onclick="enterWebsite()" disabled class="w-full py-3.5 px-4 rounded-xl font-medium bg-purple-900/40 text-gray-500 cursor-not-allowed border border-purple-900/50 transition-all duration-300 flex items-center justify-center gap-2">
-                    <i class="fa-solid fa-arrow-right-to-bracket"></i> <span id="enterBtnText">เข้าสู่เว็บ</span>
+                    <i class="fa-solid fa-arrow-right-to-bracket"></i> <span id="enterBtnText">ไปหน้ากรอกคีย์</span>
                 </button>
             </div>
 
             <div class="mt-6 space-y-1">
-                <p class="text-xs text-gray-400">หากยังไม่เข้าดิสคอร์ด กรุณากดปุ่มด้านบนก่อน</p>
+                <p class="text-xs text-gray-400">นำคีย์ที่ได้จากใน Discord มากรอกในขั้นตอนถัดไป</p>
                 <p id="statusMsg" class="text-xs text-neonPurple font-medium h-4"></p>
             </div>
         </div>
@@ -134,11 +134,11 @@
             </div>
 
             <h2 class="text-2xl font-bold mb-2">กรอกคีย์เข้าใช้งาน</h2>
-            <p class="text-gray-300 text-sm mb-6">กรุณากรอกคีย์ <code class="text-neonPurple font-mono bg-purple-950 px-2 py-0.5 rounded">Sunlight hub 2026</code></p>
+            <p class="text-gray-300 text-sm mb-6">นำคีย์ที่คุณได้รับจากห้องใน <a href="https://discord.gg/yUUz7jWa5" target="_blank" class="text-neonPurple underline font-medium">Discord</a> มากรอกที่นี่</p>
 
             <form onsubmit="verifyKey(event)" class="space-y-4">
                 <div>
-                    <input type="text" id="accessKeyInput" required placeholder="กรอกคีย์ที่นี่..." class="w-full px-4 py-3.5 rounded-xl glass-panel text-white text-center text-sm focus:outline-none focus:border-neonPurple placeholder-gray-500">
+                    <input type="text" id="accessKeyInput" required placeholder="วางคีย์ที่นี่..." class="w-full px-4 py-3.5 rounded-xl glass-panel text-white text-center text-sm focus:outline-none focus:border-neonPurple placeholder-gray-500">
                 </div>
                 <button type="submit" class="w-full py-3.5 px-4 rounded-xl font-medium bg-neonPurple hover:bg-neonPurpleHover text-white transition-all duration-300 neon-glow-sm flex items-center justify-center gap-2">
                     <i class="fa-solid fa-shield-check"></i> ตรวจสอบคีย์
@@ -146,7 +146,13 @@
             </form>
 
             <div id="keyErrorMsg" class="mt-4 p-3 rounded-xl bg-red-950/60 border border-red-500/40 text-red-300 text-xs text-center hidden flex items-center justify-center gap-2">
-                <i class="fa-solid fa-triangle-exclamation"></i> <span>คีย์ไม่ถูกต้อง! (คีย์คือ: Sunlight hub 2026)</span>
+                <i class="fa-solid fa-triangle-exclamation"></i> <span>คีย์ไม่ถูกต้อง! กรุณาตรวจสอบคีย์ใน Discord อีกครั้ง</span>
+            </div>
+            
+            <div class="mt-4">
+                <a href="https://discord.gg/yUUz7jWa5" target="_blank" class="text-xs text-purple-400 hover:text-purple-300 underline">
+                    <i class="fa-brands fa-discord"></i> ยังไม่มีคีย์? ไปเอาใน Discord
+                </a>
             </div>
         </div>
     </div>
@@ -344,6 +350,7 @@
         let player = null;
         let musicPlaying = false;
 
+        // กำหนดคีย์จริงสำหรับระบบตรวจสอบ (สามารถเปลี่ยนค่าคีย์ตรงนี้ได้ตามต้องการให้ตรงกับที่ตั้งใน Discord)
         const correctKey = "Sunlight hub 2026";
 
         const defaultScripts = [
@@ -456,8 +463,8 @@
             const discordBtn = document.getElementById('discordBtn');
             discordBtn.disabled = true;
             discordBtn.classList.add('opacity-50', 'cursor-not-allowed');
-            document.getElementById('discordBtnText').innerText = "กรุณารอสักครู่...";
-            document.getElementById('statusMsg').innerText = "กำลังเตรียมระบบ...";
+            document.getElementById('discordBtnText').innerText = "กำลังไปที่ Discord...";
+            document.getElementById('statusMsg').innerText = "ไปเอาคีย์ใน Discord แล้วกลับมากรอกนะ...";
 
             let timeLeft = 10;
             const enterBtn = document.getElementById('enterWebBtn');
@@ -477,8 +484,8 @@
                     enterBtn.removeAttribute('disabled');
                     enterBtn.classList.remove('bg-purple-900/40', 'text-gray-500', 'cursor-not-allowed', 'border-purple-900/50');
                     enterBtn.classList.add('bg-neonPurple', 'hover:bg-neonPurpleHover', 'text-white', 'neon-glow-sm');
-                    enterBtnText.innerText = "เข้าสู่เว็บ";
-                    document.getElementById('statusMsg').innerText = "ระบบพร้อมใช้งานแล้ว!";
+                    enterBtnText.innerText = "ไปหน้ากรอกคีย์";
+                    document.getElementById('statusMsg').innerText = "พร้อมไปกรอกคีย์แล้ว!";
                 }
             }, 1000);
         }
