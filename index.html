@@ -218,10 +218,13 @@
                 <i class="fa-solid fa-xmark"></i>
             </button>
 
+            <!-- Tab Switcher -->
             <div class="flex rounded-xl bg-purple-950/60 p-1 mb-6 border border-purple-900/40">
-                <button class="flex-1 py-2.5 rounded-lg text-sm font-medium transition-all duration-300 bg-neonPurple text-white">เข้าสู่ระบบ</button>
+                <button id="tabLoginBtn" onclick="switchAuthTab('login')" class="flex-1 py-2.5 rounded-lg text-sm font-medium transition-all duration-300 bg-neonPurple text-white">เข้าสู่ระบบ</button>
+                <button id="tabRegisterBtn" onclick="switchAuthTab('register')" class="flex-1 py-2.5 rounded-lg text-sm font-medium transition-all duration-300 text-gray-400 hover:text-white">สมัครสมาชิก</button>
             </div>
 
+            <!-- Login Form -->
             <form id="loginForm" onsubmit="handleLogin(event)" class="space-y-4">
                 <div>
                     <label class="block text-xs font-medium text-gray-300 mb-1">ชื่อผู้ใช้</label>
@@ -238,8 +241,25 @@
                 </div>
             </form>
 
+            <!-- Register Form -->
+            <form id="registerForm" onsubmit="handleRegister(event)" class="space-y-4 hidden">
+                <div>
+                    <label class="block text-xs font-medium text-gray-300 mb-1">ชื่อผู้ใช้ใหม่</label>
+                    <input type="text" id="regUser" required placeholder="ตั้งชื่อผู้ใช้" class="w-full px-4 py-3 rounded-xl glass-panel text-white text-sm focus:outline-none focus:border-neonPurple">
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-gray-300 mb-1">รหัสผ่าน</label>
+                    <input type="password" id="regPass" required placeholder="••••••••" class="w-full px-4 py-3 rounded-xl glass-panel text-white text-sm focus:outline-none focus:border-neonPurple">
+                </div>
+                <div class="pt-2">
+                    <button type="submit" class="w-full py-3 rounded-xl font-medium bg-neonPurple hover:bg-neonPurpleHover text-white transition-all duration-300 neon-glow-sm flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-user-plus"></i> สมัครสมาชิก
+                    </button>
+                </div>
+            </form>
+
             <div id="authErrorMsg" class="mt-4 p-3 rounded-xl bg-red-950/60 border border-red-500/40 text-red-300 text-xs text-center hidden flex items-center justify-center gap-2">
-                <i class="fa-solid fa-triangle-exclamation"></i> <span id="errorText">ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง!</span>
+                <i class="fa-solid fa-triangle-exclamation"></i> <span id="errorText">เกิดข้อผิดพลาด!</span>
             </div>
         </div>
     </div>
@@ -355,10 +375,31 @@
 
         function openAuthModal() {
             document.getElementById('authModal').style.display = 'flex';
+            switchAuthTab('login');
         }
         function closeAuthModal() {
             document.getElementById('authModal').style.display = 'none';
             document.getElementById('authErrorMsg').classList.add('hidden');
+        }
+
+        function switchAuthTab(tab) {
+            const loginForm = document.getElementById('loginForm');
+            const registerForm = document.getElementById('registerForm');
+            const loginBtn = document.getElementById('tabLoginBtn');
+            const registerBtn = document.getElementById('tabRegisterBtn');
+            document.getElementById('authErrorMsg').classList.add('hidden');
+
+            if (tab === 'login') {
+                loginForm.classList.remove('hidden');
+                registerForm.classList.add('hidden');
+                loginBtn.className = "flex-1 py-2.5 rounded-lg text-sm font-medium transition-all duration-300 bg-neonPurple text-white";
+                registerBtn.className = "flex-1 py-2.5 rounded-lg text-sm font-medium transition-all duration-300 text-gray-400 hover:text-white";
+            } else {
+                loginForm.classList.add('hidden');
+                registerForm.classList.remove('hidden');
+                registerBtn.className = "flex-1 py-2.5 rounded-lg text-sm font-medium transition-all duration-300 bg-neonPurple text-white";
+                loginBtn.className = "flex-1 py-2.5 rounded-lg text-sm font-medium transition-all duration-300 text-gray-400 hover:text-white";
+            }
         }
 
         function handleLogin(e) {
@@ -366,16 +407,58 @@
             const user = document.getElementById('loginUser').value.trim();
             const pass = document.getElementById('loginPass').value;
 
+            // บัญชีแอดมินหลัก
             if (user === 'Sunlight hub 2626' && pass === 'Sunlight shop 2626') {
                 currentUser = { username: 'Sunlight hub 2626', role: 'admin' };
                 localStorage.setItem('sunlight_current_user', JSON.stringify(currentUser));
                 closeAuthModal();
                 updateAuthUI();
                 showToast('เข้าสู่ระบบแอดมินสำเร็จ!');
+                return;
+            }
+
+            // ตรวจสอบบัญชีที่สมัครสมาชิกไว้ใน LocalStorage
+            let users = JSON.parse(localStorage.getItem('sunlight_registered_users')) || [];
+            let found = users.find(u => u.username === user && u.password === pass);
+
+            if (found) {
+                currentUser = { username: found.username, role: 'user' };
+                localStorage.setItem('sunlight_current_user', JSON.stringify(currentUser));
+                closeAuthModal();
+                updateAuthUI();
+                showToast(`ยินดีต้อนรับคุณ ${found.username}`);
             } else {
-                document.getElementById('errorText').innerText = "ชื่อผู้ใช้หรือรหัสผ่านแอดมินไม่ถูกต้อง!";
+                document.getElementById('errorText').innerText = "ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง!";
                 document.getElementById('authErrorMsg').classList.remove('hidden');
             }
+        }
+
+        function handleRegister(e) {
+            e.preventDefault();
+            const user = document.getElementById('regUser').value.trim();
+            const pass = document.getElementById('regPass').value;
+
+            if (user === 'Sunlight hub 2626') {
+                document.getElementById('errorText').innerText = "ชื่อผู้ใช้นี้ถูกสงวนไว้สำหรับแอดมิน!";
+                document.getElementById('authErrorMsg').classList.remove('hidden');
+                return;
+            }
+
+            let users = JSON.parse(localStorage.getItem('sunlight_registered_users')) || [];
+            let exists = users.some(u => u.username === user);
+
+            if (exists) {
+                document.getElementById('errorText').innerText = "ชื่อผู้ใช้นี้ถูกใช้งานไปแล้ว!";
+                document.getElementById('authErrorMsg').classList.remove('hidden');
+                return;
+            }
+
+            users.push({ username: user, password: pass });
+            localStorage.setItem('sunlight_registered_users', JSON.stringify(users));
+
+            showToast('สมัครสมาชิกสำเร็จ! กรุณาเข้าสู่ระบบ');
+            switchAuthTab('login');
+            document.getElementById('loginUser').value = user;
         }
 
         function logout() {
@@ -406,7 +489,7 @@
             } else {
                 authContainer.innerHTML = `
                     <button onclick="openAuthModal()" class="bg-neonPurple hover:bg-neonPurpleHover text-white px-4 py-2 rounded-xl font-medium text-sm transition-all duration-300 neon-glow-sm flex items-center gap-2">
-                        <i class="fa-solid fa-user-circle"></i> เข้าสู่ระบบ
+                        <i class="fa-solid fa-user-circle"></i> เข้าสู่ระบบ / สมัครสมาชิก
                     </button>
                 `;
                 adminBtn.classList.add('hidden');
