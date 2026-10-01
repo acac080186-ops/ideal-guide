@@ -192,7 +192,7 @@
                 </div>
                 <div>
                     <label class="block text-xs font-medium text-gray-300 mb-1">ชื่อผู้สร้าง</label>
-                    <input type="text" id="scriptCreator" required placeholder="เช่น Sunlight Dev" class="w-full px-4 py-3 rounded-xl glass-panel text-white text-sm focus:outline-none focus:border-neonPurple">
+                    <input type="text" id="scriptCreator" required placeholder="เช่น areb_81h2" class="w-full px-4 py-3 rounded-xl glass-panel text-white text-sm focus:outline-none focus:border-neonPurple">
                 </div>
                 <div>
                     <label class="block text-xs font-medium text-gray-300 mb-1">ลิงก์ดาวน์โหลด (URL หรือ โค้ดสคริปต์)</label>
@@ -275,33 +275,33 @@
         let isCountingDown = false;
         let allScripts = [];
 
-        // รายการสคริปต์หลักกลาง (ทุกคนที่เข้าเว็บจะเห็นชุดนี้เหมือนกันทั้งหมดทันที)
+        // รายการสคริปต์หลักกลาง (กำหนดให้ผู้สร้างเป็น areb_81h2 ทั้งหมดตามต้องการ)
         const defaultScripts = [
             {
                 id: 1,
                 name: 'Touch fling',
-                creator: 'ผู้สร้างคนเดิม',
+                creator: 'areb_81h2',
                 url: 'loadstring(game:HttpGet("https://pastefy.app/YDjomyL0/raw"))()',
                 desc: 'เมื่อเปิดฟังก์ชันและเดินไปใกล้ผู้เล่นคนอื่น จะทำให้ผู้เล่นคนอื่นกระเด็นหนีไปทันที'
             },
             {
                 id: 2,
                 name: 'Clone player',
-                creator: 'ผู้สร้างคนเดิม',
+                creator: 'areb_81h2',
                 url: 'loadstring(game:HttpGet("https://pastefy.app/1u13Zaug/raw"))()',
                 desc: 'โคลนตัวละครของเรามา 1 คน สามารถกดวาร์ปสลับไปหาตัวที่โคลนและตัวที่เพิ่งวาร์ปออกมาได้สะดวก'
             },
             {
                 id: 3,
                 name: 'Sunlight Dex 1.0',
-                creator: 'areb_01h2',
+                creator: 'areb_81h2',
                 url: 'loadstring(game:HttpGet("https://dpaste.com/8WPSRDSMT.txt"))()',
                 desc: 'ทำหน้าที่เหมือน Dex ทั่วไป ค้นหาและตรวจสอบ Instance ภายในเกมได้อย่างสะดวก'
             },
             {
                 id: 4,
                 name: 'NPC ผู้สร้างคนเดิม (Clone NPC)',
-                creator: 'areb_01h2',
+                creator: 'areb_81h2',
                 url: 'loadstring(game:HttpGet("https://pastefy.app/UmUjJxMA/raw"))()',
                 desc: 'ทำการโคลน NPC ที่เหมือนตัวเรามา สามารถสั่งการควบคุมคำสั่งได้โดยตรงในตัวสคริปต์'
             }
@@ -320,7 +320,7 @@
 
         function resetWelcomeState() {
             localStorage.removeItem('sunlight_entered');
-            localStorage.removeItem('sunlight_cloud_scripts'); // ล้างแคชสคริปต์เก่าเพื่อให้โหลดชุดใหม่ทันที
+            localStorage.removeItem('sunlight_cloud_scripts'); // ล้างแคชเก่าเพื่อให้โหลดชุดใหม่ทันที
             location.reload();
         }
 
@@ -439,7 +439,7 @@
 
             if (user === 'Sunlight hub 2626') {
                 document.getElementById('errorText').innerText = "ชื่อผู้ใช้นี้ถูกสงวนไว้สำหรับแอดมิน!";
-                document.getElementById('authErrorMsg').classList.remove('hidden');
+                document.getElementById('authErrorMsg').classList.add('hidden');
                 return;
             }
 
@@ -448,7 +448,7 @@
 
             if (exists) {
                 document.getElementById('errorText').innerText = "ชื่อผู้ใช้นี้ถูกใช้งานไปแล้ว!";
-                document.getElementById('authErrorMsg').classList.remove('hidden');
+                document.getElementById('authErrorMsg').classList.add('hidden');
                 return;
             }
 
@@ -502,13 +502,11 @@
         }
 
         function fetchScripts() {
-            // บังคับใช้ค่าเริ่มต้นชุดล่าสุดเสมอ เพื่อให้ทุกคนที่เข้าเว็บเห็นสคริปต์ตรงกัน
             allScripts = defaultScripts;
             let localData = localStorage.getItem('sunlight_cloud_scripts');
             if (localData) {
                 try {
                     let parsed = JSON.parse(localData);
-                    // ถ้ารายการในเครื่องมีน้อยกว่าค่าเริ่มต้น ให้ใช้ค่าเริ่มต้นแทน
                     if (parsed.length >= defaultScripts.length) {
                         allScripts = parsed;
                     }
