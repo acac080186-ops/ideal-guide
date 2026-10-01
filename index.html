@@ -62,6 +62,11 @@
 
     <!-- ================= WELCOME / SPLASH SCREEN ================= -->
     <div id="welcomeScreen" class="fixed inset-0 z-50 bg-[#0a0a0a] flex items-center justify-center p-4 transition-opacity duration-700">
+        <!-- ปุ่มช่วยรีเซ็ตสำหรับทดสอบ -->
+        <button onclick="resetWelcomeState()" class="absolute top-4 left-4 text-xs bg-purple-950/80 border border-purple-800 text-purple-300 px-3 py-1.5 rounded-lg hover:bg-purple-900 transition-all">
+            <i class="fa-solid fa-rotate-right mr-1"></i> รีเซ็ตสถานะต้อนรับ
+        </button>
+
         <div class="glass-panel p-8 md:p-12 rounded-3xl max-w-md w-full text-center neon-glow relative overflow-hidden">
             <!-- Background Glow Effect -->
             <div class="absolute -top-24 -left-24 w-48 h-48 bg-purple-600 rounded-full filter blur-3xl opacity-30"></div>
@@ -296,6 +301,12 @@
             loadScripts();
         });
 
+        // ปุ่มช่วยรีเซ็ตสถานะสำหรับทดสอบ
+        function resetWelcomeState() {
+            localStorage.removeItem('sunlight_entered');
+            location.reload();
+        }
+
         function joinDiscord() {
             if (isCountingDown) return;
             isCountingDown = true;
@@ -425,7 +436,7 @@
             let users = JSON.parse(localStorage.getItem('sunlight_users')) || [];
             if (users.some(u => u.username === username || u.email === email)) {
                 document.getElementById('errorText').innerText = "ชื่อผู้ใช้หรืออีเมลนี้ถูกใช้งานแล้ว!";
-                document.getElementById('authErrorMsg').classList.remove('hidden');
+                document.getElementById('authErrorMsg').classList.add('hidden');
                 return;
             }
 
