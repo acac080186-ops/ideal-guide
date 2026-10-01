@@ -61,12 +61,12 @@
 
     <!-- YouTube Hidden Player for Looping Music (jthza-s_NEg) -->
     <div id="youtubePlayerContainer" class="hidden">
-        <iframe id="ytAudioPlayer" width="200" height="200" src="https://www.youtube.com/embed/jthza-s_NEg?enablejsapi=1&autoplay=0&loop=1&playlist=jthza-s_NEg" frameborder="0" allow="autoplay"></iframe>
+        <iframe id="ytAudioPlayer" width="200" height="200" src="https://www.youtube.com/embed/jthza-s_NEg?enablejsapi=1&autoplay=1&loop=1&playlist=jthza-s_NEg" frameborder="0" allow="autoplay"></iframe>
     </div>
 
     <!-- ================= MUSIC PREFERENCE GUI MODAL ================= -->
     <div id="musicPromptModal" class="fixed inset-0 z-50 bg-black/85 backdrop-blur-md hidden items-center justify-center p-4">
-        <div class="glass-panel p-8 md:p-10 rounded-3xl max-w-md w-full text-center neon-glow relative overflow-hidden animate-bounce-short">
+        <div class="glass-panel p-8 md:p-10 rounded-3xl max-w-md w-full text-center neon-glow relative overflow-hidden">
             <div class="absolute -top-24 -left-24 w-48 h-48 bg-purple-600 rounded-full filter blur-3xl opacity-30"></div>
             <div class="absolute -bottom-24 -right-24 w-48 h-48 bg-indigo-600 rounded-full filter blur-3xl opacity-30"></div>
 
@@ -137,11 +137,10 @@
                 </div>
 
                 <div class="flex items-center gap-3">
-                    <div id="musicToggleContainer" class="hidden">
-                        <button onclick="toggleBackgroundMusic()" id="musicToggleBtn" class="bg-purple-950/60 hover:bg-purple-900 border border-purple-800 text-purple-300 px-3 py-2 rounded-xl text-xs font-medium transition-all duration-300 flex items-center gap-1.5">
-                            <i id="musicIcon" class="fa-solid fa-volume-high text-neonPurple"></i> <span id="musicText">ปิดเพลง</span>
-                        </button>
-                    </div>
+                    <!-- ปุ่มเปิด/ปิดเพลงบน Navbar -->
+                    <button onclick="toggleBackgroundMusic()" id="musicToggleBtn" class="bg-purple-950/80 hover:bg-purple-900 border border-purple-800 text-purple-300 px-3 py-2 rounded-xl text-xs font-medium transition-all duration-300 flex items-center gap-1.5">
+                        <i id="musicIcon" class="fa-solid fa-volume-high text-neonPurple"></i> <span id="musicText">ปิดเพลง</span>
+                    </button>
 
                     <div id="authContainer">
                         <button onclick="openAuthModal()" class="bg-neonPurple hover:bg-neonPurpleHover text-white px-4 py-2 rounded-xl font-medium text-sm transition-all duration-300 neon-glow-sm flex items-center gap-2">
@@ -309,7 +308,6 @@
     </div>
 
     <!-- ================= JAVASCRIPT ================= -->
-    <!-- YouTube IFrame API Script -->
     <script src="https://www.youtube.com/iframe_api"></script>
     <script>
         let currentUser = JSON.parse(localStorage.getItem('sunlight_current_user')) || null;
@@ -353,25 +351,16 @@
             }
         ];
 
-        // YouTube API Initialization callback
         function onYouTubeIframeAPIReady() {
             player = new YT.Player('ytAudioPlayer', {
                 events: {
-                    'onReady': onPlayerReady,
-                    'onStateChange': onPlayerStateChange
+                    'onStateChange': (event) => {
+                        if (event.data === YT.PlayerState.ENDED) {
+                            player.playVideo();
+                        }
+                    }
                 }
             });
-        }
-
-        function onPlayerReady(event) {
-            // Player is ready
-        }
-
-        function onPlayerStateChange(event) {
-            // Loop the video when it ends
-            if (event.data === YT.PlayerState.ENDED) {
-                player.playVideo();
-            }
         }
 
         window.addEventListener('DOMContentLoaded', () => {
@@ -380,23 +369,13 @@
                 document.getElementById('welcomeScreen').style.display = 'none';
                 document.getElementById('mainApp').classList.remove('hidden');
                 document.getElementById('mainApp').classList.add('flex');
-                
-                // ตรวจสอบสถานะเพลงที่เคยเลือกไว้
-                const musicPref = localStorage.getItem('sunlight_music_pref');
-                if (musicPref === 'yes') {
-                    playMusic();
-                } else if (musicPref === 'no') {
-                    stopMusic();
-                }
             }
             updateAuthUI();
             fetchScripts();
         });
 
         function resetWelcomeState() {
-            localStorage.removeItem('sunlight_entered');
-            localStorage.removeItem('sunlight_music_pref');
-            localStorage.removeItem('sunlight_cloud_scripts');
+            localStorage.clear();
             location.reload();
         }
 
@@ -448,15 +427,8 @@
                 main.classList.remove('hidden');
                 main.classList.add('flex');
 
-                // เช็คว่าเคยเลือกเพลงหรือยัง ถ้ายังให้แสดง GUI ถาม
-                const savedMusicPref = localStorage.getItem('sunlight_music_pref');
-                if (!savedMusicPref) {
-                    document.getElementById('musicPromptModal').style.display = 'flex';
-                } else if (savedMusicPref === 'yes') {
-                    playMusic();
-                } else {
-                    stopMusic();
-                }
+                // บังคับแสดงหน้าต่าง GUI เลือกเพลงทันทีที่เข้าหน้าหลัก
+                document.getElementById('musicPromptModal').style.display = 'flex';
             }, 700);
         }
 
@@ -469,7 +441,7 @@
                 showToast('เปิดเพลงประกอบเรียบร้อย');
             } else {
                 stopMusic();
-                showToast('ปิดเพลงประกอบ');
+                showToast('ไม่ต้องการเปิดเพลง');
             }
         }
 
@@ -502,8 +474,6 @@
         }
 
         function updateMusicUI() {
-            const container = document.getElementById('musicToggleContainer');
-            container.classList.remove('hidden');
             const icon = document.getElementById('musicIcon');
             const text = document.getElementById('musicText');
 
@@ -581,7 +551,7 @@
 
             if (user === 'Sunlight hub 2626') {
                 document.getElementById('errorText').innerText = "ชื่อผู้ใช้นี้ถูกสงวนไว้สำหรับแอดมิน!";
-                document.getElementById('authErrorMsg').classList.add('hidden');
+                document.getElementById('authErrorMsg').classList.remove('hidden');
                 return;
             }
 
@@ -590,7 +560,7 @@
 
             if (exists) {
                 document.getElementById('errorText').innerText = "ชื่อผู้ใช้นี้ถูกใช้งานไปแล้ว!";
-                document.getElementById('authErrorMsg').classList.add('hidden');
+                document.getElementById('authErrorMsg').classList.remove('hidden');
                 return;
             }
 
